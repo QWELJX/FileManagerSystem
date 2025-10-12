@@ -1,0 +1,8 @@
+﻿  CMDManager.cpp
+  FileManager.cpp
+  FileNode.cpp
+  NodeManager.cpp
+C:\Users\24278\Desktop\Project4\Project4\NodeManager.cpp(10,1): warning C4010: 单行注释包含行继续符
+  正在生成代码...
+C:\Users\24278\Desktop\Project4\Project4\FileNode.cpp(13,1): warning C4715: “FileNode::CValid”: 不是所有的控件路径都返回值
+  Project4.vcxproj -> C:\Users\24278\Desktop\Project4\x64\Debug\Project4.exe
