@@ -98,8 +98,18 @@ void CMDManager::Show() {
         this->duiQi(20);
     }
     
-    std::cout << std::endl << "--------------------------------------------------" << std::endl;
-    this->appendContent(DIR + "> ");
+    std::cout << std::endl << "--------------------------------------------------------------" << std::endl;
+    if (this->m_Fm==nullptr)
+    {
+        this->appendContent(DIR + "> ");
+        int x = 1;
+    }
+    else {
+        if (this->m_Fm->getNM()->currentNode->m_path != this->m_Fm->getNM()->rootNode->m_path)
+            this->appendContent(this->m_Fm->getNM()->currentNode->m_path + "\\" + this->m_Fm->getNM()->currentNode->c_path + "> ");
+        else
+            this->appendContent(this->m_Fm->getNM()->currentNode->m_path + this->m_Fm->getNM()->currentNode->c_path + "> ");
+    }
     this->showContent();
 }
 
@@ -109,7 +119,7 @@ void CMDManager::handleRgt(const std::vector<std::string>& tokens) {
         return;  
     }
     std::string name = tokens[1];
-    this->setDirectory(name);
+    this->setDirectory(name+":\\");
     FileManager* newFm = new FileManager(name); 
     this->setFileManager(newFm);
 
@@ -168,18 +178,29 @@ void CMDManager::handleAdd(const std::vector<std::string>& tokens) {
     else {
         this->appendContent("错误: 多余参数\n");
         return;
-    }
-
-   
+    } 
 }
 
 // 添加其他命令处理函数的实现
 void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
-    this->appendContent("删除功能待实现\n");
+    if (tokens.size() >= 4 || tokens.size() <=1 )  
+    { this->appendContent("当前命令不合法，只能有三个参数哦——例如 del name txt\n");return; }
+    if (this->m_Fm->getNM()->handleDelete(tokens));
+    else if(tokens.size()==3){
+        this->appendContent("当前目录没有" + tokens[1]+"."+tokens[2]+"\n");
+    }
+    else {
+        this->appendContent("当前目录没有 文件夹" + tokens[1]  + "\n");
+    }
 }
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
-    this->appendContent("跳转功能待实现\n");
+    if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
+    if (this->m_Fm->getNM()->handleGoto(tokens)) {
+        std::cout<< "已经"; this->setDirectory(tokens[1]); 
+        //this->appendContent(this->m_Fm->getNM()->currentNode->m_path);
+        int x=1; }
+    else { ; }
 }
 
 void CMDManager::handleList(const std::vector<std::string>& tokens) {
@@ -190,15 +211,15 @@ void CMDManager::handleList(const std::vector<std::string>& tokens) {
 
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
     this->appendContent("可用命令:\n");
-    this->appendContent("  register <name>              - 注册文件管理器\n");
-    this->appendContent("  cls/clear                    - 清屏\n");
-    this->appendContent("  back/b                       - 返回上级目录\n");
-    this->appendContent("  add <name> <type>            - 添加文件/目录\n");
-    this->appendContent("  del/delete <name>/<index>    - 删除\n");
-    this->appendContent("  goto/cd <index>              - 进入目录\n");
-    this->appendContent("  list/ls                      - 刷新显示\n");
-    this->appendContent("  help                         - 显示帮助\n");
-    this->appendContent("  quit                         - 退出程序\n");
+    this->appendContent("  register <name>                     - 注册文件管理器\n");
+    this->appendContent("  cls/clear                           - 清屏\n");
+    this->appendContent("  back/b                              - 返回上级目录\n");
+    this->appendContent("  add <name> <type>                   - 添加文件/目录\n");
+    this->appendContent("  del/delete <name>/<index> <type>    - 删除\n");
+    this->appendContent("  goto/cd <index>                     - 进入目录\n");
+    this->appendContent("  list/ls                             - 刷新显示\n");
+    this->appendContent("  help                                - 显示帮助\n");
+    this->appendContent("  quit                                - 退出程序\n");
 }
 
 // 工具函数实现

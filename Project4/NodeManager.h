@@ -38,4 +38,5 @@ public:
 	bool handleGoto(const std::vector<std::string>& tokens);
 	////»ØÍË
 	bool handleBack();
+	bool CValid(std::string name);
 };

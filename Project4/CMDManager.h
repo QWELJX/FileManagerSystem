@@ -60,11 +60,16 @@ public:
     // 获取当前内容（用于显示）
     const std::string& getContent() const { return CONTENT; }
     void clearContent() { CONTENT.clear(); }
-    void appendContent(const std::string& text) { CONTENT += text; }
+    void appendContent(const std::string& text) { 
+        CONTENT += text;
+        int x = 1;
+    }
     void showContent() { std::cout << this->getContent(); }
 
     // 设置/获取当前目录
-    void setDirectory(const std::string& dir) { DIR = dir; }
+    void setDirectory(const std::string& dir) { 
+        DIR = dir; 
+    }
     const std::string& getDirectory() const { return DIR; }
 
 }; 

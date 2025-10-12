@@ -1,10 +1,14 @@
 #include "FileNodeType.h"
+// 引入映射容器头文件，提供std::map（键值对集合），用于存储文件扩展名与文件类型的对应关系
+#include <map> 
 
 // 函数实现在.cpp文件中
 std::pair<std::string, std::string> fileTypeToString(FileNodeType type) {
     switch (type) {
     case FileNodeType::DIRECTORY: return { "文件夹" ,""};
     case FileNodeType::TXT: return { "文本文件",".txt"};
+    case FileNodeType::RTF: return { "RTF 格式文档（富文本格式）",".rft" };
+    case FileNodeType::DOC: return { "",".doc" };
     default: return { "其他",""};
     }
 }

@@ -21,7 +21,7 @@ public:
 	FileNode(NodeManager*nm,std::string name, FileNodeType type = FileNodeType::DIRECTORY);//如名字后没有具体的文件类型，就默认是文件夹
 	size_t GetSize();
 
-	bool CValid(std::string name);
+	
 	
 };
 

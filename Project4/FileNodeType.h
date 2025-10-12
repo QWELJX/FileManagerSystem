@@ -5,6 +5,7 @@
 #include <utility>//引入pair
 #include <algorithm>    // 用于 std::transform
 #include <cctype> 
+
 enum class FileNodeType
 {
     DIRECTORY, TXT, RTF, DOC, DOCX, XLS, XLSX, PPT, PPTX, PDF, JNG, GIF, BMP, PSD, SVG, MP3, WAV, FLAC, M4A, OGG, MP4, AVI, MKV, FLV, MOV, RMVB,
