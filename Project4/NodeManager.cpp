@@ -25,6 +25,21 @@ bool NodeManager::handleGoto(const std::vector<std::string>& tokens) {
     return true;
 }
 bool NodeManager::handleBack() {
-    FileNode* T = this->currentNode;
+    //FileNode* T = this->currentNode;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     return true;
 }

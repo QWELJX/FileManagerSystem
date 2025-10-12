@@ -2,8 +2,10 @@
   FileManager.cpp
   FileNode.cpp
   FileNodeType.cpp
+  M.cpp
   NodeManager.cpp
-D:\project\C++project\cmd-manager\Project4\NodeManager.cpp(10,1): warning C4010: 单行注释包含行继续符
+C:\Users\24278\Desktop\Project4 - 副本\Project4\NodeManager.cpp(10,1): warning C4010: 单行注释包含行继续符
+  PathUtils.cpp
   正在生成代码...
-D:\project\C++project\cmd-manager\Project4\FileNode.cpp(13,1): warning C4715: “FileNode::CValid”: 不是所有的控件路径都返回值
-  Project4.vcxproj -> D:\project\C++project\cmd-manager\x64\Debug\Project4.exe
+C:\Users\24278\Desktop\Project4 - 副本\Project4\FileNode.cpp(13,1): warning C4715: “FileNode::CValid”: 不是所有的控件路径都返回值
+  Project4.vcxproj -> C:\Users\24278\Desktop\Project4 - 副本\x64\Debug\Project4.exe
