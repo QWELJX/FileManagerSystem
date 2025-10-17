@@ -7,7 +7,7 @@
 //   
 //    m_NM = new FileManager(this);
 //
-//kk
+
 //}//√ª”√
 void FileManager::CallBack(std::string content) {
     CMDManager::getInstance().appendContent(content);
