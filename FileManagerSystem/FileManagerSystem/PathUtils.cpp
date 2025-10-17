@@ -13,7 +13,7 @@ std::string PathUtils::join(const std::string& path1, const std::string& path2) 
             size_t p1 = path1.find(k);
         if (p1 == std::string::npos) return "";
         if (p1 + k.size() == path1.size() || path1[p1 + k.size()] == SEPARATOR)
-            return SEPARATOR + path2;
+            return path1.substr(0,p1)+SEPARATOR + path2;
             return "";
     
     

@@ -66,7 +66,7 @@ bool FileManager::handleAdd(std::string name, FileNodeType type) {
     else {
         this->currentPath =this->prePath+ SEPARATOR + name;
     }
-    pathMap[T->path] = T;
+    pathMap[this->currentPath] = T;
     //if (T->path != this->rootNode->path)
     //    this->pathMap[T->path + "\\" ] = T;//C:\\picture\\1.txt
     //else
