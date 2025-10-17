@@ -69,9 +69,10 @@ std::string PathUtils::normalize(const std::string& path) {
 
     // 统一分隔符
     std::string result = uniformSeparator(path);
-
+    int x = 1;
     // 分割组件
     auto components = splitComponents(result);
+    x = 1;
     std::vector<std::string> normalized;
 
     for (const auto& component : components) {

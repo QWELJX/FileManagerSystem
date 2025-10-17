@@ -55,18 +55,15 @@ bool FileManager::handleAdd(std::string name, FileNodeType type) {
     {
 		CallBack("当前目录没有写权限，无法添加文件或目录\n");
         return false;
+        FileNode* T = new FileNode(this, name, type);
     }
     FileNode* T = new FileNode(this, name, type);
     this->currentNode->children.push_back(T);
     if (T->path != this->rootNode->path)
-    {
-        this->pathMap[T->path + "\\" + T->path] = T;//C:\\picture\\1.txt
-        return true;
-    }
+        this->pathMap[T->path + "\\"+"\\"+name] = T;// C:\\picture\\1.txt
     else
     {
-        this->pathMap[currentPath + T->path] = T;
-        return true;
+        this->pathMap[T->path + "\\" + "\\" + name] = T;
     }
 }//对树进行添加
 bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
