@@ -205,7 +205,6 @@ void CMDManager::handleList(const std::vector<std::string>& tokens) {
         m_Fm->getNodeManager()->Refresh();
     }*/
 }
-
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
     this->appendContent("可用命令:\n");
     this->appendContent("  register <name>                     - 注册文件管理器\n");
