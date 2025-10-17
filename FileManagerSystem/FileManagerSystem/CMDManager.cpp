@@ -101,7 +101,12 @@ void CMDManager::Show() {
             this->appendContent(this->m_Fm->getNM()->currentNode->m_path + "\\" + this->m_Fm->getNM()->currentNode->c_path + "> ");
         else
             this->appendContent(this->m_Fm->getNM()->currentNode->m_path + this->m_Fm->getNM()->currentNode->c_path + "> ");*///太长了
-	this->appendContent((this->m_Fm ? this->m_Fm->pathHistory.top() : "") + "> ");//有fm就输出当前路径 没有就空
+	//this->appendContent((this->m_Fm ? this->m_Fm->pathHistory.top() : "") + "> ");//有fm就输出当前路径 没有就空
+    //if (this->m_Fm&&this->m_Fm->currentNode == this->m_Fm->rootNode)
+    //    this->appendContent(this->m_Fm->currentPath + ">");
+    //    //this->appendContent(this->m_Fm->currentPath+SEPARATOR+">");
+    //else
+    this->appendContent((this->m_Fm ? this->m_Fm->currentPath : "") + "> ");//有fm就输出当前路径 没有就空
     this->showContent();
 }
 
@@ -114,10 +119,12 @@ void CMDManager::handleRgt(const std::vector<std::string>& tokens) {
     FileManager* newFm = new FileManager(name);
     this->setFileManager(newFm);
 	std::string path_root = name + ":" + SEPARATOR;
-	this->m_Fm->currentPath = path_root;
+	this->m_Fm->currentPath = name + ":" + SEPARATOR;
+    this->m_Fm->prePath = path_root;
     this->m_Fm->rootNode->path = path_root;
 	this->m_Fm->pathMap[path_root] = this->m_Fm->rootNode;
 	this->m_Fm->pathHistory.push(path_root);
+    //this->appendContent("");
 }
 
 void CMDManager::handleCls(const std::vector<std::string>& tokens) {
@@ -176,6 +183,7 @@ void CMDManager::handleAdd(const std::vector<std::string>& tokens) {
 		FileNode* targetNode = m_Fm->pathMap[path];
         FileNode* T = new FileNode(this->m_Fm,name,type);
 		targetNode->children.push_back(T);
+        this->m_Fm->pathMap[path+ SEPARATOR+name] = T;
 		// 保存当前路径
 
         /*
@@ -206,8 +214,9 @@ void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
     if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
-	else if (tokens.size() >= 3) { this->appendContent("当前命令多参数"); return; }
+	else if (tokens.size() >= 3) { this->appendContent("当前命令参数只有2个"); return; }
 	m_Fm->handleGoto(tokens[1]);
+   
 }
 
 void CMDManager::handleList(const std::vector<std::string>& tokens) {

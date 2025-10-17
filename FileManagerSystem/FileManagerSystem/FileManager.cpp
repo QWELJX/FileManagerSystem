@@ -16,8 +16,8 @@ FileManager::FileManager(std::string name) {
 	std::string rootName = name + ":" + SEPARATOR;
     this->rootNode = new FileNode(this,rootName,FileNodeType::DIRECTORY,FilePermission::NONE_CONTROL);
     this->currentNode = rootNode;//!!!!   
-    rootNode->path = "";
-    this->pathMap[currentPath+SEPARATOR+rootName] = rootNode;
+    rootNode->path = rootName;
+    this->pathMap[rootName] = rootNode;
     /*this->pathHistory.push(SEPARATOR+rootName);*/ //不推 细节问ljx
 	//比如节点 c:\ 那么容器[\Project,\FileManager,\File] 当前在File下的某个节点 处理相对路径 比如 cd . 会弹出栈顶元素 (这里指File)
 	// cd .. 会弹出栈2次 (FileManager) 就能返回上级目录 还能处理相对路径
@@ -58,15 +58,21 @@ bool FileManager::handleAdd(std::string name, FileNodeType type) {
     }
     FileNode* T = new FileNode(this, name, type);
     this->currentNode->children.push_back(T);
+    std::string path;
+    if (this->currentPath[0] != SEPARATOR) {
+       path = PathUtils::join(this->currentPath, name);
+    }
     if(type== FileNodeType::DIRECTORY){
-	this->currentPath = this->prePath+SEPARATOR + name ;
-	T->path = this->currentPath;
     this->prePath = this->currentPath;
+	//this->currentPath = this->prePath+SEPARATOR + name ;
+	T->path =path;
+    
     }
     else {
-        this->currentPath =this->prePath+ SEPARATOR + name;
+        T->path =path;
     }
-    pathMap[this->currentPath] = T;
+    pathMap[path] = T;
+    int xx = 1;
     //if (T->path != this->rootNode->path)
     //    this->pathMap[T->path + "\\" ] = T;//C:\\picture\\1.txt
     //else
@@ -106,31 +112,47 @@ bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
     }
     return false;
 }
-bool FileManager::handleGoto(const std::vector<std::string>& tokens) {//cd dirName 相对路径
-	std::string targetName = tokens[1]; //目标目录名
-	std::string targetPath = currentPath;//目标路径
-    if (targetPath.back() != SEPARATOR) targetPath += SEPARATOR;//
-    targetPath += targetName;
-    auto it = pathMap.find(targetPath);
-    int x = 1;
-    if (it != pathMap.end()) {
-        currentNode = it->second;
-        currentPath = targetPath;
-        pathHistory.push(targetPath);
-        return true;
+//bool FileManager::handleGoto(const std::vector<std::string>& tokens) {//cd dirName 相对路径
+//	std::string targetName = tokens[1]; //目标目录名
+//	std::string targetPath = currentPath;//目标路径
+//    if (targetPath.back() != SEPARATOR) targetPath += SEPARATOR;//
+//    targetPath += targetName;
+//    auto it = pathMap.find(targetPath);
+//    int x = 1;
+//    if (it != pathMap.end()) {
+//        currentNode = it->second;
+//        currentPath = targetPath;
+//        pathHistory.push(targetPath);
+//        return true;
+//    }
+//    else {
+//		return false;
+//    }
+//}
+bool FileManager::handleGoto(std::string path) {
+
+    if (path[0] != SEPARATOR) {
+        path = PathUtils::join(this->currentPath, path);
     }
-    else {
-		return false;
+    if (pathMap[path] == nullptr) {
+        CallBack("该路径不存在\n");
+        return false;
     }
+    if (this->rootNode != this->currentNode)
+	this->pathHistory.push(currentPath);//保存当前路径到历史栈
+	this->currentPath = path;//更新当前路径
+	currentNode = pathMap[currentPath];//更新当前节点
+    return true;
 }
 bool FileManager::handleBack() {
-    if (pathHistory.size() <= 1) return false;
-    pathHistory.pop();
+    if (pathHistory.size() < 1) return false;
+    //pathHistory.pop();
     std::string prevPath = pathHistory.top();
     auto it = pathMap.find(prevPath);
     if (it != pathMap.end()) {
         currentNode = it->second;
         currentPath = prevPath;
+        pathHistory.pop();
         return true;
     }
     return false;
