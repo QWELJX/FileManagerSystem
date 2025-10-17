@@ -54,15 +54,15 @@ bool FileManager::handleAdd(std::string name, FileNodeType type) {
     if (this->currentNode->permission == FilePermission::READ_ONLY || this->currentNode->permission == FilePermission::EXECUTE_ONLY)
     {
 		CallBack("当前目录没有写权限，无法添加文件或目录\n");
-        return;
+        return; FileNode* T = new FileNode(this, name, type);
     }
     FileNode* T = new FileNode(this, name, type);
     this->currentNode->children.push_back(T);
     if (T->path != this->rootNode->path)
-        this->pathMap[T->path + "\\" + T->c_path] = T;//C:\\picture\\1.txt
+        this->pathMap[T->path + "\\" ] = T;//C:\\picture\\1.txt
     else
     {
-        this->pathMap[T->path + T->c_path] = T;
+        this->pathMap[T->path ] = T;
     }
     int xx = 1;
     return false;
@@ -86,7 +86,7 @@ bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
                 fileTypeToString((*it)->type).second == "" && (targetType == ""))) {//2.删除文件夹 没输相当于输入的
             targetNode = *it;
             // 从pathMap中移除
-            std::string fullPath = (*it)->path + (*it)->c_path;
+            std::string fullPath = (*it)->path ;
             pathMap.erase(fullPath);
             // 删除节点对象
             delete* it;
@@ -97,24 +97,16 @@ bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
     }
     return false;
 }
-bool FileManager::handleGoto(const std::vector<std::string>& tokens) {
-
-    std::string targetName = tokens[1];
-    std::string targetPath = currentPath;
-    if (targetPath.back() != SEPARATOR) targetPath += SEPARATOR;
-    targetPath += targetName;
-    auto it = pathMap.find(targetPath);
-    int x = 1;
-    if (it != pathMap.end()) {
-        currentNode = it->second;
-        currentPath = targetPath;
-        pathHistory.push(targetPath);
-        return true;
+bool FileManager::handleGoto(std::string path) {
+    if (PathUtils::isAbsolute(path)==false) {
+		path = PathUtils::join(this->currentPath, path);
     }
-    else {
-        int x = 1;
-    }
-    return false;
+	if (pathMap.find(path) == pathMap.end()) {
+        CallBack("该路径不存在\n");
+		return false;
+	}
+	this->currentPath =path;
+	currentNode = pathMap[currentPath];
 }
 bool FileManager::handleBack() {
     if (pathHistory.size() <= 1) return false;
@@ -129,7 +121,7 @@ bool FileManager::handleBack() {
     return false;
 }
 bool FileManager::isNameAvailable(std::string name) {
-    if(pathMap[currentPath+pa])
+    if(pathMap[currentPath])
     for (auto& it : this->currentNode->children) {
         if (it->name == name)
             return false;

@@ -34,7 +34,7 @@ public:
 	//删除文件
 	bool handleDelete(const std::vector<std::string>& tokens);
 	////跳转 
-	bool handleGoto(const std::vector<std::string>& tokens);
+	bool handleGoto(std::string path);
 	////回退
 	bool handleBack();
 	bool isNameAvailable(std::string name);

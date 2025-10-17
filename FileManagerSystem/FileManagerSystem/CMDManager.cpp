@@ -163,11 +163,22 @@ void CMDManager::handleAdd(const std::vector<std::string>& tokens) {
         this->m_Fm->handleAdd(name, stringToFileType(type));
         return;
     }else if(t==4){
-        std::string type = tokens[2];
+		std::string name = tokens[1];
+        FileNodeType type = stringToFileType(tokens[2]);
         std::string path = tokens[3];
+        if (m_Fm->pathMap.find(path) == m_Fm->pathMap.end()) {
+            this->appendContent("该路径不存在\n");
+            return ;
+        }
+		FileNode* targetNode = m_Fm->pathMap[path];
+        FileNode* T = new FileNode(this->m_Fm,name,type);
+		targetNode->children.push_back(T);
+		// 保存当前路径
+
+        /*
         path = PathUtils::normalize(path);
         this->m_Fm->handleAdd(name, stringToFileType(type));
-        return;
+        return;*/
 	}
     else {
         this->appendContent("错误: 多余参数\n");
@@ -191,13 +202,10 @@ void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
 }
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
+
     if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
-    if (this->m_Fm->handleGoto(tokens)) {
-        /*std::cout << "已经"; this->setDirectory(tokens[1]);*/
-        //this->appendContent(this->m_Fm->getNM()->currentNode->m_path);
-        int x = 1;
-    }
-    else { ; }
+	else if (tokens.size() >= 3) { this->appendContent("当前命令多参数"); return; }
+	m_Fm->handleGoto(tokens[1]);
 }
 
 void CMDManager::handleList(const std::vector<std::string>& tokens) {
