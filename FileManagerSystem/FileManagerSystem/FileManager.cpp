@@ -144,6 +144,7 @@ bool FileManager::handleGoto(std::string path) {
 	currentNode = pathMap[currentPath];//更新当前节点
     return true;
 }
+
 bool FileManager::handleBack() {
     if (pathHistory.size() < 1) return false;
     //pathHistory.pop();
