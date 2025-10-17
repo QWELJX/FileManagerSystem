@@ -114,9 +114,9 @@ void CMDManager::handleRgt(const std::vector<std::string>& tokens) {
 	std::string name = tokens[1];//register name 这个name是文件管理器的名字
     FileManager* newFm = new FileManager(name);
     this->setFileManager(newFm);
-    std::string rootpath=this->m_Fm->rootNode->path = name+":";
-    this->m_Fm->currentPath = rootpath;
-    this->m_Fm->pathMap[rootpath];
+	this->m_Fm->currentPath = name + ":" + SEPARATOR;
+    this->m_Fm->rootNode->path = name + ":" + SEPARATOR;
+	int xx = 1;
 }
 
 void CMDManager::handleCls(const std::vector<std::string>& tokens) {
@@ -157,7 +157,7 @@ void CMDManager::handleAdd(const std::vector<std::string>& tokens) {
     }
     std::string name = tokens[1];
     if (t == 2) {
-        this->m_Fm->handleAdd(name);
+		this->m_Fm->handleAdd(name);//默认添加目录
         return;
     }
     else if (t == 3) {
