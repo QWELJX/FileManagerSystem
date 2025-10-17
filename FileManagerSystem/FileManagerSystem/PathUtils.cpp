@@ -5,15 +5,18 @@
 
 
 std::string PathUtils::join(const std::string& path1, const std::string& path2) {
-    if (path1.empty()) return path2;
-    if (path2.empty()) return path1;
-
-    // 如果 path2 是绝对路径，直接返回 path2
-    if (isAbsolute(path2)) {
-        return normalize(path2);
-    }
-
-    return normalize(path1 + SEPARATOR + path2);
+   
+        size_t p2 = path2.find(SEPARATOR);
+            if (p2 == std::string::npos) return "";
+        std::string p0 = path2.substr(0, p2);
+        std::string k = SEPARATOR + p0;
+            size_t p1 = path1.find(k);
+        if (p1 == std::string::npos) return "";
+        if (p1 + k.size() == path1.size() || path1[p1 + k.size()] == SEPARATOR)
+            return SEPARATOR + path2;
+            return "";
+    
+    
 }
 
 std::string PathUtils::join(const std::vector<std::string>& components) {

@@ -202,7 +202,6 @@ void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
 }
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
-
     if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
 	else if (tokens.size() >= 3) { this->appendContent("当前命令多参数"); return; }
 	m_Fm->handleGoto(tokens[1]);

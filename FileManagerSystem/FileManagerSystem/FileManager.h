@@ -19,7 +19,7 @@ public:
 
 	FileNode* rootNode;//根节点
 	FileNode* currentNode;//当前节点
-	std::string currentPath;//当前路径
+	std::string currentPath,prePath;//当前路径
 	std::unordered_map<std::string, FileNode*> pathMap;//路径表(快速找节点，利于绝对路径)
 	std::stack<std::string> pathHistory;// 路径历史栈，支持多级返回,利于相对路径
 

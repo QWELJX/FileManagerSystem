@@ -54,18 +54,27 @@ bool FileManager::handleAdd(std::string name, FileNodeType type) {
     if (this->currentNode->permission == FilePermission::READ_ONLY || this->currentNode->permission == FilePermission::EXECUTE_ONLY)
     {
 		CallBack("当前目录没有写权限，无法添加文件或目录\n");
-        return; FileNode* T = new FileNode(this, name, type);
+		return false;
     }
     FileNode* T = new FileNode(this, name, type);
     this->currentNode->children.push_back(T);
-    if (T->path != this->rootNode->path)
-        this->pathMap[T->path + "\\" ] = T;//C:\\picture\\1.txt
-    else
-    {
-        this->pathMap[T->path ] = T;
+    if(type== FileNodeType::DIRECTORY){
+	this->currentPath = this->prePath+SEPARATOR + name ;
+	T->path = this->currentPath;
+    this->prePath = this->currentPath;
     }
-    int xx = 1;
-    return false;
+    else {
+        this->currentPath =this->prePath+ SEPARATOR + name;
+    }
+    pathMap[T->path] = T;
+    //if (T->path != this->rootNode->path)
+    //    this->pathMap[T->path + "\\" ] = T;//C:\\picture\\1.txt
+    //else
+    //{
+    //    this->pathMap[T->path ] = T;
+    //}
+    //int xx = 1;
+    //return false;
 }//对树进行添加
 bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
 
@@ -98,10 +107,11 @@ bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
     return false;
 }
 bool FileManager::handleGoto(std::string path) {
-    if (PathUtils::isAbsolute(path)==false) {
+    
+    if (path[0]!= SEPARATOR) {
 		path = PathUtils::join(this->currentPath, path);
     }
-	if (pathMap.find(path) == pathMap.end()) {
+    if (pathMap[path]==nullptr) {
         CallBack("该路径不存在\n");
 		return false;
 	}
