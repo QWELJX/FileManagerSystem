@@ -10,7 +10,6 @@
 class FileManager {
 
 private:
-
 	
 public:
 	

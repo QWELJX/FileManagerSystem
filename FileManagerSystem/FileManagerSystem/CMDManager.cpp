@@ -208,6 +208,7 @@ void CMDManager::handleList(const std::vector<std::string>& tokens) {
 
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
     this->appendContent("可用命令:\n");
+    this->appendContent("  echo [<content>/blank] > <AP + name>/<name>                    - 添加文件\n");
     this->appendContent("  register <name>                     - 注册文件管理器\n");
     this->appendContent("  cls/clear                           - 清屏\n");
     this->appendContent("  back/b                              - 返回上级目录\n");
