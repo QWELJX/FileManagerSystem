@@ -106,17 +106,22 @@ bool FileManager::handleDelete(const std::vector<std::string>& tokens) {
     }
     return false;
 }
-bool FileManager::handleGoto(std::string path) {
-    
-    if (path[0]!= SEPARATOR) {
-		path = PathUtils::join(this->currentPath, path);
+bool FileManager::handleGoto(const std::vector<std::string>& tokens) {//cd dirName 相对路径
+	std::string targetName = tokens[1]; //目标目录名
+	std::string targetPath = currentPath;//目标路径
+    if (targetPath.back() != SEPARATOR) targetPath += SEPARATOR;//
+    targetPath += targetName;
+    auto it = pathMap.find(targetPath);
+    int x = 1;
+    if (it != pathMap.end()) {
+        currentNode = it->second;
+        currentPath = targetPath;
+        pathHistory.push(targetPath);
+        return true;
     }
-    if (pathMap[path]==nullptr) {
-        CallBack("该路径不存在\n");
+    else {
 		return false;
-	}
-	this->currentPath =path;
-	currentNode = pathMap[currentPath];
+    }
 }
 bool FileManager::handleBack() {
     if (pathHistory.size() <= 1) return false;

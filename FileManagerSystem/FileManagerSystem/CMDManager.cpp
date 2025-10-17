@@ -101,8 +101,7 @@ void CMDManager::Show() {
             this->appendContent(this->m_Fm->getNM()->currentNode->m_path + "\\" + this->m_Fm->getNM()->currentNode->c_path + "> ");
         else
             this->appendContent(this->m_Fm->getNM()->currentNode->m_path + this->m_Fm->getNM()->currentNode->c_path + "> ");*///太长了
-	this->appendContent((this->m_Fm ? this->m_Fm->currentPath : "") + "> ");//有fm就输出当前路径 没有就空
-    
+	this->appendContent((this->m_Fm ? this->m_Fm->pathHistory.top() : "") + "> ");//有fm就输出当前路径 没有就空
     this->showContent();
 }
 
@@ -114,7 +113,11 @@ void CMDManager::handleRgt(const std::vector<std::string>& tokens) {
 	std::string name = tokens[1];//register name 这个name是文件管理器的名字
     FileManager* newFm = new FileManager(name);
     this->setFileManager(newFm);
-
+	std::string path_root = name + ":" + SEPARATOR;
+	this->m_Fm->currentPath = path_root;
+    this->m_Fm->rootNode->path = path_root;
+	this->m_Fm->pathMap[path_root] = this->m_Fm->rootNode;
+	this->m_Fm->pathHistory.push(path_root);
 }
 
 void CMDManager::handleCls(const std::vector<std::string>& tokens) {
