@@ -1,9 +1,8 @@
-#include "FileNode.h"
+#include "TreeNode.h"
 #include "FileManager.h"
-size_t FileNode::GetSize() {
+size_t TreeNode::GetSize() {
 	return children.size();
 }
-
 //FileNode::FileNode() {
 //	nm=
 //	type = FileNodeType::DIRECTORY;
@@ -15,7 +14,7 @@ size_t FileNode::GetSize() {
 //	}
 //	name = TEMP;
 //}
-FileNode::FileNode(FileManager* fm, std::string name, FileNodeType type, FilePermission permission):m_Fm(fm),name(name),size(0){
+TreeNode::FileNode(FileManager* fm, std::string name, FileNodeType type, FilePermission permission):m_Fm(fm),name(name),size(0){
 	this->type = type;
 	this->permission = permission;
 	this->path = m_Fm->currentPath;									//所在文件夹的路径c:/picture

@@ -13,33 +13,31 @@ class CMDManager {
 private:
     // 私有构造函数
     CMDManager();
-
     // 禁止拷贝和赋值
     CMDManager(const CMDManager&) = delete;
     CMDManager& operator=(const CMDManager&) = delete;
 
-    FileManager* m_Fm;
-
     std::unordered_map<std::string,
         std::function<void(const std::vector<std::string>&)>> commandMap;
 
-    std::string CONTENT;
-	/*std::string DIR;*/ //冗余变量 直接调用FileManager的name即可
+    std::string CONTENT;//展示内容
 
     // 命令处理函数
-    void handleRgt(const std::vector<std::string>& tokens);
-    void handleCls(const std::vector<std::string>& tokens);
-    void handleBack(const std::vector<std::string>& tokens);
-    void handleAdd(const std::vector<std::string>& tokens);
-    void handleDelete(const std::vector<std::string>& tokens);
-    void handleGoto(const std::vector<std::string>& tokens);
-    void handleList(const std::vector<std::string>& tokens);
-    void handleHelp(const std::vector<std::string>& tokens);
+
+    void handleRgt(const std::vector<std::string>& tokens);//注册用户
+	void handleLogin(const std::vector<std::string>& tokens);//登录用户
+    void handleCls(const std::vector<std::string>& tokens);//清屏
+    void handleAdd(const std::vector<std::string>& tokens);//添加
+    void handleDelete(const std::vector<std::string>& tokens);//删除
+    void handleGoto(const std::vector<std::string>& tokens);//跳转
+    void handleBack(const std::vector<std::string>& tokens);//回退
+    void handleSet(const std::vector<std::string>& tokens);//设置文件权限
+    void handleHelp(const std::vector<std::string>& tokens);//帮助
 
     // 工具函数
-    bool isPureNumber(const std::string& str);
+    bool isPureNumber(const std::string& str);//判断纯数字
     std::string toLower(const std::string& str);  // 添加这个声明
-    void duiQi(size_t t);
+    void nl(int t);//换行
  
 public:
     // 获取单例实例
@@ -52,11 +50,7 @@ public:
     void Run();
     void RunCMD(const std::vector<std::string>& tokens);
     void Show();
-
-    //获取文件管理
-    FileManager* getFileManager() { return this->m_Fm; }
-    void setFileManager(FileManager* fm) { this->m_Fm = fm; }
-
+    
     // 获取当前内容（用于显示）
     const std::string& getContent() const { return CONTENT; }
     void clearContent() { CONTENT.clear(); }

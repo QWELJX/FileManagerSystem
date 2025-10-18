@@ -92,7 +92,6 @@ std::string PathUtils::normalize(const std::string& path) {
         }
     }
 
-    // 重新组合
     result.clear();
     for (size_t i = 0; i < normalized.size(); ++i) {
         if (i > 0) {
@@ -101,7 +100,6 @@ std::string PathUtils::normalize(const std::string& path) {
         result += normalized[i];
     }
 
-    // 处理根路径
     if (isAbsolute(path) && result.empty()) {
         result = std::string(1, SEPARATOR);
     }
