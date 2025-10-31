@@ -6,7 +6,7 @@
  * @brief 简化版路径处理工具类
  * 只包含最常用的路径操作功能
  */
-static char SEPARATOR = '\\';
+const static char SEPARATOR = '\\';
 
 class PathUtils {
 public:
@@ -88,5 +88,5 @@ private:
     static bool isSeparator(char c);
     static bool isCurrentDirectory(const std::string& component);
     static bool isParentDirectory(const std::string& component);
-    static std::vector<std::string> splitComponents(const std::string& path);
+    static std::pair<bool, std::vector<std::string>> splitComponents(const std::string& path);
 };

@@ -24,10 +24,11 @@ private:
 
     // 命令处理函数
 
-    void handleRgt(const std::vector<std::string>& tokens);//注册用户
-	void handleLogin(const std::vector<std::string>& tokens);//登录用户
+    //void handleRgt(const std::vector<std::string>& tokens);//注册用户
+	//void handleLogin(const std::vector<std::string>& tokens);//登录用户
     void handleCls(const std::vector<std::string>& tokens);//清屏
-    void handleAdd(const std::vector<std::string>& tokens);//添加
+    void handleMkdir(const std::vector<std::string>& tokens);//添加文件夹
+	void HandleCreateFile(const std::vector<std::string>& tokens);//添加文件
     void handleDelete(const std::vector<std::string>& tokens);//删除
     void handleGoto(const std::vector<std::string>& tokens);//跳转
     void handleBack(const std::vector<std::string>& tokens);//回退
@@ -52,10 +53,10 @@ public:
     void Show();
     
     // 获取当前内容（用于显示）
-    const std::string& getContent() const { return CONTENT; }
-    void clearContent() { CONTENT.clear(); }
-    void appendContent(const std::string& text) {CONTENT += text;}
-    void showContent() { std::cout << this->getContent(); }
+    const std::string& getContent() const;
+    void clearContent();
+    void appendContent(const std::string& text);
+    void showContent();
 
 
 };

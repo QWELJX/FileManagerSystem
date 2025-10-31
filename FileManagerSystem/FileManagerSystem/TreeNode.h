@@ -11,8 +11,6 @@ private:
 	std::string name;
 	//路径
 	std::string path;
-	//权限
-	FilePermission permission;
 	//类型
 	TreeNodeType type;
 	//大小
@@ -20,21 +18,21 @@ private:
 	//放在私有里面 避免在类外部被随意修改
 public:
 	
-	//删去指针 FileNode* m_Fm;//指向文件管理器的指针
-	//构造函数
-	TreeNode(std::string name, FileNodeType type , FilePermission permission);
+	TreeNode(std::string name, TreeNodeType type,std::string path);
+	TreeNode(std::string name, TreeNodeType type );
+	TreeNode(std::string name);
 	//需要继承的方法
-	virtual void Show() = 0;//搞成纯虚函数 方便多态
+	virtual void Show() = 0;
+
 	//获取方法
-	std::string GetName() { return name; }
-	std::string GetPath() { return path; }
-	FilePermission GetPermission() { return permission; }
-	FileNodeType GetType() { return type; }
-	size_t GetSize() { return size; }
-	
-
-
-	
+	std::string GetName();
+	std::string GetPath();
+	TreeNodeType GetType();
+	size_t GetSize();
+	void SetName(std::string n);
+	void SetPath(std::string p);
+	void SetType(TreeNodeType t);
+	void SetSize(size_t s);
 };
 class DirectoryNode : public TreeNode {
 private:
@@ -42,33 +40,29 @@ private:
 public:
 	
 	//构造函数
-	DirectoryNode(std::string name, FilePermission permission = FilePermission::FULL_CONTROL)
-		:TreeNode(name, FileNodeType::DIRECTORY, permission) {
-
-	}
+	DirectoryNode(std::string name, std::string path);
+	DirectoryNode(std::string name);
 	//重写Show方法
 	void Show() override;
+
+	bool isNameAvailable(DirectoryNode T);
 	//判断名字是否可用
-	bool isNameAvailable(std::string name);
+	
 	//添加子节点
-	void AddChild(TreeNode* child) {
-		children.push_back(child);
-	}
+	void AddChild(TreeNode* child);
 	//获取子节点数量
-	size_t GetChildrenSize() { return children.size(); }
+	size_t GetChildrenSize();
 	//获取子节点
-	TreeNode* GetChild(size_t index);/* {
-		if (index < children.size()) {
-			return children[index];
-		}
-		return nullptr;
-	}*/
+	TreeNode* GetOneChild(size_t index);
 	//删除子节点
 	bool RemoveChild(const std::string& childName);
+	bool RemoveChild(size_t t);
+	const std::vector<TreeNode*>& GetChild() const;
 
 };
-class NotDirectoryNode : public TreeNode {
-
-	//非文件节点不应该有children 所以分开两个类
+class FileNode : public TreeNode {
+	FileNode(std::string name, std::string path);
+	FileNode(std::string name);
+	
 };
 
