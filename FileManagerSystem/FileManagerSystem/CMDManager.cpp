@@ -113,6 +113,22 @@ void CMDManager::handleCls(const std::vector<std::string>& tokens) {
     }
     this->clearContent();
 }
+void CMDManager::handleBack(const std::vector<std::string>& tokens) {
+    //if (tokens.size() != 1) {
+    //    this->appendContent("错误: back 命令不需要参数\n");  // 修正错误信息
+    //    return;  // 添加return
+    //}
+    //else {
+    //    FileNode* T = this->m_Fm->rootNode;
+    //    if (T->path == "") {
+    //        this->appendContent("已到根目录，无法再后退\n");
+    //        return;
+    //    }
+    //    this->m_Fm->handleBack();
+    //    return;
+    //}
+
+}
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
     size_t t = tokens.size();
     if (t < 2) {
@@ -139,19 +155,28 @@ void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
 
 }
 void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
-   
+   /* if (tokens.size() >= 4 || tokens.size() <= 1)
+    {
+        this->appendContent("当前命令不合法，只能有三个参数哦——例如 del name txt\n");return;
+    }
+    if (this->m_Fm->handleDelete(tokens));
+    else if (tokens.size() == 3) {
+        this->appendContent("当前目录没有" + tokens[1] + "." + tokens[2] + "\n");
+    }
+    else {
+        this->appendContent("当前目录没有 文件夹" + tokens[1] + "\n");
+    }*/
 }
-void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
- 
-}
-void CMDManager::handleBack(const std::vector<std::string>& tokens) {
-    
 
+void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
+    if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
+	else if (tokens.size() >= 3) { this->appendContent("当前命令参数只有2个"); return; }
+	m_Fm->handleGoto(tokens[1]);
+   
 }
 void CMDManager::handleSet(const std::vector<std::string>& tokens) {
     
 }
-
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
 
     this->appendContent("  register <username>                 - 注册用户\n");
