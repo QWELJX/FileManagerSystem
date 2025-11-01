@@ -16,12 +16,6 @@ CMDManager::CMDManager():CONTENT("") {
 
         commandMap["cls"] = commandMap["clear"];
 
-        commandMap["back"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleBack(tokens);
-            };
-
-        commandMap["b"] = commandMap["back"];
-
         commandMap["mkdir"] = [this](const std::vector<std::string>& tokens) -> void {
             this->handleMkdir(tokens);
             };
@@ -44,11 +38,10 @@ CMDManager::CMDManager():CONTENT("") {
 
         commandMap["cd"] = commandMap["goto"];
 
-        commandMap["list"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleSet(tokens);
+        commandMap["dir"] = [this](const std::vector<std::string>& tokens) -> void {
+            this->handleDir(tokens);
             };
 
-        commandMap["ls"] = commandMap["list"];
 
         commandMap["help"] = [this](const std::vector<std::string>& tokens) -> void {
             this->handleHelp(tokens);
@@ -113,22 +106,7 @@ void CMDManager::handleCls(const std::vector<std::string>& tokens) {
     }
     this->clearContent();
 }
-void CMDManager::handleBack(const std::vector<std::string>& tokens) {
-    //if (tokens.size() != 1) {
-    //    this->appendContent("错误: back 命令不需要参数\n");  // 修正错误信息
-    //    return;  // 添加return
-    //}
-    //else {
-    //    FileNode* T = this->m_Fm->rootNode;
-    //    if (T->path == "") {
-    //        this->appendContent("已到根目录，无法再后退\n");
-    //        return;
-    //    }
-    //    this->m_Fm->handleBack();
-    //    return;
-    //}
 
-}
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
     size_t t = tokens.size();
     if (t < 2) {
@@ -145,36 +123,56 @@ void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
         FileManager::getInstance().handleMkdir(name,path);
         return;
     }
-   
+    else {
+        this->appendContent("错误: md多余参数->["+tokens[3] + "" + "\n");
+        return;
+    }
+}
+void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
+    size_t t = tokens.size();
+    if (t < 2) {
+        this->appendContent("错误: create缺少名称参数\n");
+        return;
+    }
+    std::string name = tokens[1];
+    if (t == 2) {
+        FileManager::getInstance().HandleCreateFile(PathUtils::getStem(name),PathUtils::getExtension(name));
+        return;
+    }
+    else if (t == 3) {
+        std::string path = tokens[2];
+        FileManager::getInstance().HandleCreateFile(PathUtils::getStem(name), PathUtils::getExtension(name), path);
+        return;
+	}
     else {
         this->appendContent("错误: 多余参数\n");
         return;
     }
 }
-void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
-
-}
 void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
-   /* if (tokens.size() >= 4 || tokens.size() <= 1)
-    {
-        this->appendContent("当前命令不合法，只能有三个参数哦——例如 del name txt\n");return;
+    size_t t = tokens.size();
+    if (t < 2) {
+        this->appendContent("错误: Delete缺少名称参数\n");
+        return;
     }
-    if (this->m_Fm->handleDelete(tokens));
-    else if (tokens.size() == 3) {
-        this->appendContent("当前目录没有" + tokens[1] + "." + tokens[2] + "\n");
+    std::string path = tokens[1];
+    if (t == 2) {
+        FileManager::getInstance().handleDelete(path);   
+	    return;      
     }
     else {
-        this->appendContent("当前目录没有 文件夹" + tokens[1] + "\n");
-    }*/
+        this->appendContent("错误: 多余参数\n");
+        return;
+    }
 }
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
-  /*  if (tokens.size() <= 1) { this->appendContent("当前命令不符合规定"); return; }
-	else if (tokens.size() >= 3) { this->appendContent("当前命令参数只有2个"); return; }
-	m_Fm->handleGoto(tokens[1]);*/
+    if (tokens.size() <= 1) { this->appendContent("cd 缺少参数"); return; }
+	else if (tokens.size() >= 3) { this->appendContent("cd 多余参数"); return; }
+	FileManager::getInstance().handleGoto(tokens[1]);
    
 }
-void CMDManager::handleSet(const std::vector<std::string>& tokens) {
+void CMDManager::handleDir(const std::vector<std::string>& tokens) {
     
 }
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {

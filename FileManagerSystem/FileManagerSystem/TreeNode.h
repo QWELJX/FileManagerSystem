@@ -21,6 +21,7 @@ public:
 	TreeNode(std::string name, TreeNodeType type,std::string path);
 	TreeNode(std::string name, TreeNodeType type );
 	TreeNode(std::string name);
+	virtual ~TreeNode();
 	//需要继承的方法
 	virtual void Show() = 0;
 
@@ -42,10 +43,11 @@ public:
 	//构造函数
 	DirectoryNode(std::string name, std::string path);
 	DirectoryNode(std::string name);
+	~DirectoryNode();
 	//重写Show方法
 	void Show() override;
 
-	bool isNameAvailable(DirectoryNode T);
+	bool isNameAvailable(TreeNode * T);
 	//判断名字是否可用
 	
 	//添加子节点
@@ -56,13 +58,15 @@ public:
 	TreeNode* GetOneChild(size_t index);
 	//删除子节点
 	bool RemoveChild(const std::string& childName);
-	bool RemoveChild(size_t t);
+	bool RemoveChild(TreeNode* p);
 	const std::vector<TreeNode*>& GetChild() const;
 
 };
 class FileNode : public TreeNode {
-	FileNode(std::string name, std::string path);
-	FileNode(std::string name);
-	
+public:
+	FileNode(std::string name,TreeNodeType type,std::string path);
+	FileNode(std::string name,TreeNodeType type);
+	~FileNode();
+	void Show() override;
 };
 

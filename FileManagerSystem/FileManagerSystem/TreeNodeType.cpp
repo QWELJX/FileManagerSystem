@@ -6,14 +6,15 @@
 // 函数实现在.cpp文件中
 // 用 static 限制全局变量作用域
 static const std::unordered_map<std::string, TreeNodeType> str_to_type = {
-    {"txt", TreeNodeType::TXT},
-    {"",TreeNodeType::DIRECTORY},
+    {".txt", TreeNodeType::TXT},
+    {"",TreeNodeType::FILE},
 
 };
 
 static const std::unordered_map<TreeNodeType, std::pair<std::string, std::string>> type_to_str = {
-    {TreeNodeType::TXT, {"txt", "文本文件"}},
+    {TreeNodeType::TXT, {".txt", "文本文件"}},
 	{TreeNodeType::DIRECTORY, {"", "目录"}},
+    {TreeNodeType::FILE, {"", "文件"}},
 };
 
 

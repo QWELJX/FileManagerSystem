@@ -14,6 +14,9 @@ TreeNode::TreeNode(std::string name) :name(name), size(0) {
     this->type = TreeNodeType::DIRECTORY;
     this->path = PathUtils::join(FileManager::getInstance().GetCurrentPath(), name);
 }
+TreeNode::~TreeNode() {
+
+}
 //工具
 
 #pragma region 封装接口
@@ -31,11 +34,19 @@ void TreeNode::SetSize(size_t s) { this->size = s; }
 #pragma endregion
 #pragma region 文件夹
 DirectoryNode::DirectoryNode(std::string name, std::string path) :TreeNode(name, TreeNodeType::DIRECTORY, path) {
-
+ 
 }
 DirectoryNode::DirectoryNode(std::string name) :TreeNode(name, TreeNodeType::DIRECTORY) {
-	this->SetPath(PathUtils::join(FileManager::getInstance().GetCurrentPath(), name));
+	
+}
+DirectoryNode::~DirectoryNode() {
 
+    for (auto child : children) {
+		std::string childPath = child->GetPath();
+		delete child;
+		FileManager::getInstance().RemoveNodeFromPathMap(childPath);
+    }
+	
 }
 void DirectoryNode::Show() {
     std::cout << "**************************************************" << std::endl;
@@ -53,7 +64,7 @@ void DirectoryNode::Show() {
     for (i = 0; i < this->GetChildrenSize(); ++i) {
         auto child = this->GetOneChild(i);
 		auto type = child->GetType();
-        std::string name = child->GetName() +'.'+ treeNodeTypeToString(type).first;
+        std::string name = child->GetName() + treeNodeTypeToString(type).first;
 
         std::cout << std::setw(6) << std::left << i
             << std::setw(16) << std::left << (name.length() > 12 ? name.substr(0, 12) + "..." : name)
@@ -66,6 +77,7 @@ void DirectoryNode::Show() {
 }
 #pragma region 接口封装
 void DirectoryNode::AddChild(TreeNode* child) {
+	FileManager::getInstance().SetNodeInPathMap(child->GetPath(), child);
     children.push_back(child);
 }
 size_t DirectoryNode::GetChildrenSize() { return children.size(); }
@@ -73,17 +85,30 @@ TreeNode* DirectoryNode::GetOneChild(size_t index) {
     if (index >= children.size())return nullptr;
     return children[index];
 }
-bool DirectoryNode::isNameAvailable(DirectoryNode T) {
-    for (TreeNode* it : T.GetChild()) {
-        if (it->GetName() == T.GetName() && it->GetType() == T.GetType())
+bool DirectoryNode::isNameAvailable(TreeNode* T) {
+    for (TreeNode* it : this->GetChild()) {
+        if (it->GetName() == T->GetName() && it->GetType() == T->GetType())
             return false;
     }
     return true;
 }
 bool  DirectoryNode::RemoveChild(const std::string& childName) {
+    for (auto it = children.begin(); it != children.end(); ++it) {
+        if ((*it)->GetName() == childName) {
+            children.erase(it);
+            return true;
+        }
+	}
     return false;
 }
-bool  DirectoryNode::RemoveChild(size_t t) {
+bool  DirectoryNode::RemoveChild(TreeNode* p) {
+    for (auto it = children.begin(); it != children.end(); ++it) {
+        if ((*it)->GetName() == p->GetName() && (*it)->GetType() == p->GetType()) {
+            children.erase(it);
+			delete p;
+            return true;
+        }
+	}
     return false;
 }
 const std::vector<TreeNode*>& DirectoryNode::GetChild() const {
@@ -92,6 +117,21 @@ const std::vector<TreeNode*>& DirectoryNode::GetChild() const {
 #pragma endregion
 
 
+#pragma endregion
+#pragma region 文件
+FileNode::FileNode(std::string name,TreeNodeType type, std::string path):TreeNode(name,type,path) {
+
+}
+FileNode::FileNode(std::string name, TreeNodeType type) :TreeNode(name,type){
+
+}
+FileNode::~FileNode() {
+	
+    FileManager::getInstance().RemoveNodeFromPathMap(this->GetPath());
+}
+void FileNode::Show(){
+
+}
 #pragma endregion
 
 

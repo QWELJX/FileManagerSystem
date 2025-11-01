@@ -21,23 +21,19 @@ private:
         std::function<void(const std::vector<std::string>&)>> commandMap;
 
     std::string CONTENT;//展示内容
-
-    // 命令处理函数
-
-    //void handleRgt(const std::vector<std::string>& tokens);//注册用户
-	//void handleLogin(const std::vector<std::string>& tokens);//登录用户
     void handleCls(const std::vector<std::string>& tokens);//清屏
     void handleMkdir(const std::vector<std::string>& tokens);//添加文件夹
 	void HandleCreateFile(const std::vector<std::string>& tokens);//添加文件
     void handleDelete(const std::vector<std::string>& tokens);//删除
     void handleGoto(const std::vector<std::string>& tokens);//跳转
-    void handleBack(const std::vector<std::string>& tokens);//回退
-    void handleSet(const std::vector<std::string>& tokens);//设置文件权限
+    //void handleBack(const std::vector<std::string>& tokens);多余
+    void handleDir(const std::vector<std::string>& tokens);//!
     void handleHelp(const std::vector<std::string>& tokens);//帮助
 
     // 工具函数
     bool isPureNumber(const std::string& str);//判断纯数字
     std::string toLower(const std::string& str);  // 添加这个声明
+
     void nl(int t);//换行
  
 public:

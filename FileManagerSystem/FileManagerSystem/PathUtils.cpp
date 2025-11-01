@@ -70,6 +70,7 @@ std::string PathUtils::normalize(const std::string& path) {
     // 统一分隔符
     std::string result = uniformSeparator(path);
     // 分割组件
+	 auto head1 = result[0];
      auto results= splitComponents(result);
 	 auto is_absolute = results.first;
 	 auto components = results.second;
@@ -90,7 +91,7 @@ std::string PathUtils::normalize(const std::string& path) {
                 }
             }
             else {
-                if (!normalized.size()>1) {
+                if (normalized.size()>1) {
                     normalized.pop_back();
                 }
             }
@@ -108,18 +109,12 @@ std::string PathUtils::normalize(const std::string& path) {
         }
         result += normalized[i];
     }
-    if (is_absolute && head == "") {
-		result = SEPARATOR + result;
+    if (is_absolute && head1 == SEPARATOR) {
+        result = SEPARATOR + result;
+
     }
-    if (!is_absolute) {      
-        if (head == "."||"..")
-        {
-            if(result.size()>0)
-                result = head + SEPARATOR + result;
-            else
-				result = head;
-        }
-         
+    if (!is_absolute&& result.size() == 0) {
+        result = '.';
     }
 
     return result;
@@ -150,9 +145,7 @@ bool PathUtils::isAbsolute(const std::string& path) {
     return false;
 }
 
-bool PathUtils::isRelative(const std::string& path) {
-    return !isAbsolute(path);
-}
+
 
 std::pair<std::string, std::string> PathUtils::split(const std::string& path) {
     size_t pos = path.find_last_of("/\\");

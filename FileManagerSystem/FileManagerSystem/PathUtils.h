@@ -52,16 +52,13 @@ public:
      * - 移除多余分隔符
      */
     static std::string normalize(const std::string& path);
-
+	
     /**
      * @brief 检查路径是否为绝对路径
      */
     static bool isAbsolute(const std::string& path);
 
-    /**
-     * @brief 检查路径是否为相对路径
-     */
-    static bool isRelative(const std::string& path);
+
 
     /**
      * @brief 分割路径为目录和文件名
