@@ -7,7 +7,7 @@
 FileManager::FileManager() {
    
 
-    this->rootDirectory = new DirectoryNode("C:","C:");
+	this->rootDirectory = new DirectoryNode("C:", "C:");//创建根目录
     this->currentDirectory = rootDirectory;
 	this->currentPath ="C:";
 	this->SetNodeInPathMap(currentPath, rootDirectory);
@@ -145,13 +145,13 @@ void FileManager::CallBack(std::string content) {
 #pragma region 纯工具
 DirectoryNode* FileManager::mkdirRecursive(std::string path) {
 
-    DirectoryNode* node = dynamic_cast<DirectoryNode*>(FindNodeByPath(path));
-    if (node == nullptr) {
-        auto Path = PathUtils::split(path);
-        auto dirPath = Path.first;
-        auto name = Path.second;
-        node = new DirectoryNode(name, path);
-       mkdirRecursive(dirPath)->AddChild(node);
+	DirectoryNode* node = dynamic_cast<DirectoryNode*>(FindNodeByPath(path));//查找该目录是否存在
+	if (node == nullptr) {//不存在该目录 则创建
+		auto Path = PathUtils::split(path);//分割路径
+		auto dirPath = Path.first;//目录路径
+		auto name = Path.second;//目录名称
+		node = new DirectoryNode(name, path);//创建目录节点
+		mkdirRecursive(dirPath)->AddChild(node);//递归创建上级目录 并添加子节点
     }
     return node;  
 }

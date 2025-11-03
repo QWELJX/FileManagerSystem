@@ -37,7 +37,7 @@ DirectoryNode::DirectoryNode(std::string name, std::string path) :TreeNode(name,
  
 }
 DirectoryNode::DirectoryNode(std::string name) :TreeNode(name, TreeNodeType::DIRECTORY) {
-	
+
 }
 DirectoryNode::~DirectoryNode() {
 

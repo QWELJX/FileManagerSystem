@@ -148,11 +148,11 @@ bool PathUtils::isAbsolute(const std::string& path) {
 
 
 std::pair<std::string, std::string> PathUtils::split(const std::string& path) {
-    size_t pos = path.find_last_of("/\\");
-    if (pos == std::string::npos) {
-        return { "", path };
-    }
-    return { path.substr(0, pos), path.substr(pos + 1) };
+	size_t pos = path.find_last_of("/\\");//寻找最后一个分隔符位置
+	if (pos == std::string::npos) {//没有找到分隔符
+		return { "", path };//返回空目录和整个路径作为文件名
+	}//找到了分隔符
+	return { path.substr(0, pos), path.substr(pos + 1) };//返回目录和文件名
 }
 
 std::string PathUtils::uniformSeparator(const std::string& path, char separator) {
