@@ -91,7 +91,7 @@ static const std::unordered_map<TreeNodeType, std::pair<std::string, std::string
     {TreeNodeType::SQL, {".sql", "SQL数据库文件"}},
     {TreeNodeType::JSON, {".json", "JSON文件"}},
     {TreeNodeType::XML, {".xml", "XML文件"}},
-    {TreeNodeType::DIRECTORY, {"", "目录"}},
+	{TreeNodeType::DIRECTORY, {"", "目录"}},
     {TreeNodeType::FILE, {"", "文件"}}
 };
 

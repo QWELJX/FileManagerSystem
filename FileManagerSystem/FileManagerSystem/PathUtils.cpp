@@ -1,22 +1,19 @@
-
+#include "PathUtils.h"
 #include <algorithm>
 #include <sstream>
-#include "PathUtils.h"
-
+#include <utility>
+#include <cctype>
 
 std::string PathUtils::join(const std::string& path1, const std::string& path2) {
-   
-        size_t p2 = path2.find(SEPARATOR);
-            if (p2 == std::string::npos) return "";
-        std::string p0 = path2.substr(0, p2);
-        std::string k = SEPARATOR + p0;
-            size_t p1 = path1.find(k);
-        if (p1 == std::string::npos) return "";
-        if (p1 + k.size() == path1.size() || path1[p1 + k.size()] == SEPARATOR)
-            return path1.substr(0,p1)+SEPARATOR + path2;
-            return "";
+    if (path1.empty()) return path2;
+    if (path2.empty()) return path1;
     
-    
+    // 如果 path2 是绝对路径，直接返回 path2
+    if (isAbsolute(path2)) {
+        return normalize(path2);
+    }
+
+    return normalize(path1 + SEPARATOR + path2);
 }
 
 std::string PathUtils::join(const std::vector<std::string>& components) {
@@ -72,30 +69,39 @@ std::string PathUtils::normalize(const std::string& path) {
 
     // 统一分隔符
     std::string result = uniformSeparator(path);
-
     // 分割组件
-    auto components = splitComponents(result);
+	 auto head1 = result[0];
+     auto results= splitComponents(result);
+	 auto is_absolute = results.first;
+	 auto components = results.second;
+	 auto head = components.size() > 0 ? components[0] : "";
     std::vector<std::string> normalized;
-
     for (const auto& component : components) {
         if (component.empty() || isCurrentDirectory(component)) {
             continue;
         }
 
         if (isParentDirectory(component)) {
-            if (!normalized.empty() && !isParentDirectory(normalized.back())) {
-                normalized.pop_back();
+            if (!is_absolute) {
+                if (!normalized.empty() && !isParentDirectory(normalized.back())) {                   
+                    normalized.pop_back();                  
+                }
+                else {                   
+                    normalized.push_back(component);  // 相对路径保留 ".."                   
+                }
             }
             else {
-                normalized.push_back(component);
+                if (normalized.size()>1) {
+                    normalized.pop_back();
+                }
             }
+           
         }
         else {
             normalized.push_back(component);
         }
     }
 
-    // 重新组合
     result.clear();
     for (size_t i = 0; i < normalized.size(); ++i) {
         if (i > 0) {
@@ -103,10 +109,12 @@ std::string PathUtils::normalize(const std::string& path) {
         }
         result += normalized[i];
     }
+    if (is_absolute && head1 == SEPARATOR) {
+        result = SEPARATOR + result;
 
-    // 处理根路径
-    if (isAbsolute(path) && result.empty()) {
-        result = std::string(1, SEPARATOR);
+    }
+    if (!is_absolute&& result.size() == 0) {
+        result = '.';
     }
 
     return result;
@@ -114,13 +122,30 @@ std::string PathUtils::normalize(const std::string& path) {
 
 bool PathUtils::isAbsolute(const std::string& path) {
     if (path.empty()) return false;
-    return (path[0] != SEPARATOR);
 
+#ifdef _WIN32  // Windows 系统（包括 32/64 位）
+	// 规则1：以反斜杠或正斜杠开头（根目录）
+    if (path.size() > 0 && path[0] == SEPARATOR) {
+        return true;
+    }
+    // 规则2：盘符路径（如 "C:"，字母+冒号）
+    if (path.size() >= 1 && std::isalpha(path[0]) && path[1] == ':') { 
+        return true;
+    }
+
+#elif defined(__linux__) || defined(__APPLE__)  // Linux 或 macOS 系统
+    // 规则：以 '/' 开头（根目录）
+    if (path[0] == '/') {
+        return true;
+    }
+
+#endif  // 结束条件编译
+
+    // 所有系统下都不满足绝对路径规则，则为相对路径
+    return false;
 }
 
-bool PathUtils::isRelative(const std::string& path) {
-    return !isAbsolute(path);
-}
+
 
 std::pair<std::string, std::string> PathUtils::split(const std::string& path) {
     size_t pos = path.find_last_of("/\\");
@@ -187,20 +212,24 @@ bool PathUtils::isParentDirectory(const std::string& component) {
     return component == "..";
 }
 
-std::vector<std::string> PathUtils::splitComponents(const std::string& path) {
+std::pair<bool, std::vector<std::string>> PathUtils::splitComponents(const std::string& path) {
     std::vector<std::string> components;
+    bool is_absolute = isAbsolute(path);  // 复用之前的绝对路径判断函数
+
     if (path.empty()) {
-        return components;
+        return std::make_pair(is_absolute, components);
     }
 
     std::stringstream ss(path);
     std::string component;
+    char sep = SEPARATOR;  // 假设已通过条件编译定义（如 '\' 或 '/'）
 
-    while (std::getline(ss, component, SEPARATOR)) {
+    // 按分隔符切割剩余部分
+    while (std::getline(ss, component, sep)) {
         if (!component.empty()) {
             components.push_back(component);
         }
     }
 
-    return components;
+    return std::make_pair(is_absolute, components);
 }
