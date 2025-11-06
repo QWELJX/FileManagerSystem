@@ -6,7 +6,6 @@
 #pragma region 构造函数
 FileManager::FileManager() {
    
-
 	this->rootDirectory = new DirectoryNode("C:", "C:");//创建根目录
     this->currentDirectory = rootDirectory;
 	this->currentPath ="C:";

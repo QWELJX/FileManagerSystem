@@ -54,7 +54,6 @@ CMDManager::CMDManager():CONTENT("") {
 
 
 void CMDManager::Run() {
-
     this->appendContent("ÊäÈë help ²é¿´°ïÖú\n");
     while (true) {
         this->Show();
