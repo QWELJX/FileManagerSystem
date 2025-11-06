@@ -14,7 +14,7 @@ std::string PathUtils::join(const std::string& path1, const std::string& path2) 
     }
 
     return normalize(path1 + SEPARATOR + path2);
-}
+} 
 
 std::string PathUtils::join(const std::vector<std::string>& components) {
     if (components.empty()) return "";

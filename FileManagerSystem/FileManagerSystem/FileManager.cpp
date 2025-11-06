@@ -20,15 +20,16 @@ FileManager::FileManager() {
 #pragma region 操作函数
 
 bool FileManager::handleMkdir(std::string name) {
-    DirectoryNode* T = new DirectoryNode(name, this->currentPath + SEPARATOR + name);
-    if (this->currentDirectory->isNameAvailable(T)) {
+    
+    if (this->currentDirectory->isNameAvailable(name)) {
+        DirectoryNode* T = new DirectoryNode(name, this->currentPath + SEPARATOR + name);
         this->currentDirectory->AddChild(T);
 		return true;
     }
     else {
        
-		CallBack("当前目录已有"+T->GetName() + "文件夹\n");
-        delete T;
+		CallBack("当前目录已有"+name + "文件夹\n");
+ 
 		return false;
     }
   
@@ -78,29 +79,33 @@ bool FileManager::handleDelete(std::string path) {
     }
 }
 bool FileManager::HandleCreateFile(std::string name,std::string extension) {
-	FileNode* T = new FileNode(name,stringToTreeNodeType(extension), this->currentPath + SEPARATOR + name + extension);
-    if (this->currentDirectory->isNameAvailable(T)) {
+	
+    if (this->currentDirectory->isNameAvailable(name+extension)) {
+        FileNode* T = new FileNode(name, stringToTreeNodeType(extension), this->currentPath + SEPARATOR + name + extension);
         this->currentDirectory->AddChild(T);
         return true;
     }
     else {
 
-        CallBack("当前目录已有" + T->GetName() +extension+ "\n");
-        delete T;
+        CallBack("当前目录已有" +name +extension+ "\n");
+    
         return false;
     }
 }
 bool FileManager::HandleCreateFile(std::string name,std::string extension, std::string path) {
+    path = getAbsolutePath(path);
     DirectoryNode* T1 = dynamic_cast<DirectoryNode*>(FindNodeByPath(path));
     if (T1 != nullptr) {
-        FileNode* T2 = new FileNode(name, stringToTreeNodeType(extension), path + name + extension);
-        if(T1->isNameAvailable(T2)){
+        
+        if(T1->isNameAvailable(name+extension)){
+            FileNode* T2 = new FileNode(name, stringToTreeNodeType(extension), path + name + extension);
             T1->AddChild(T2);
+           
             return true;
         }
         else {
-            CallBack("目录" + path + "已有" + T2->GetName() + extension + "\n");
-            delete T2;
+            CallBack("目录" + path + "已有" +name + extension + "\n");
+          
             return false;
 		}
     }
@@ -161,7 +166,7 @@ std::string FileManager::getAbsolutePath(std::string path) {
             path = PathUtils::join(this->rootDirectory->GetPath(),path);
         }
     }
-    else {
+    else{
         path = PathUtils::join(this->currentPath, path);
     }
 	return path;

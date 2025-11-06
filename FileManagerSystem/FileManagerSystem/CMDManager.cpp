@@ -178,11 +178,9 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
 	this->appendContent("create <name.type> [path]             -添加文件\n");
     this->appendContent("  cls/clear                           - 清屏\n");
-    this->appendContent("  back/b                              - 返回上级目录\n");
     this->appendContent("  md <name> [path]                    - 添加目录\n");//添加
     this->appendContent("  del/delete <name>/<index> <type>    - 删除\n");
     this->appendContent("  goto/cd <index>                     - 进入目录\n");
-    this->appendContent("  set                                 - 设置权限\n");
     this->appendContent("  help                                - 显示帮助\n");
     this->appendContent("  quit                                - 退出程序\n");
 }

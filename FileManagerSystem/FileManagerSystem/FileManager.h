@@ -12,33 +12,50 @@ private:
 	FileManager();
 	// 禁止拷贝和赋值
 	FileManager(const FileManager&) = delete;
+
 	FileManager& operator=(const FileManager&) = delete;
+
 	//属性
 	DirectoryNode* rootDirectory;//根节点
+
 	DirectoryNode* currentDirectory;//当前节点
+
 	std::string currentPath;//当前路径
+
 	std::unordered_map<std::string, TreeNode*> pathMap;//路径表(快速找节点，利于绝对路径)
+
 	DirectoryNode* mkdirRecursive(std::string path);
+
 	std::string getAbsolutePath(std::string path);
+
 public:
 	static FileManager& getInstance() {
 		static FileManager instance;
 		return instance;
 	}
 	//getter
+
 	    DirectoryNode* GetRootNode()const;
+
 	    DirectoryNode* GetCurrentNode()const;
+
 		std::string GetCurrentPath();
+
 		TreeNode* FindNodeByPath(const std::string& path) const;
+
 	//setter
 		void SetCurrentNode(DirectoryNode* node);
+
 		void SetCurrentPath(const std::string& path);
+
 		void SetNodeInPathMap(const std::string& path, TreeNode* node);
+
 		void RemoveNodeFromPathMap(const std::string& path);
 	
 
 
 	void Show();
+
 	void CallBack(std::string);//文件管理器回调函数 用于给CMD返回信息
 	//------------------------------------------------------------------------------------------------
 	/*FileNode* SearchNode(std::string);*/

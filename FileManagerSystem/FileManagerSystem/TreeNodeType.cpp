@@ -46,7 +46,7 @@ static const std::unordered_map<std::string, TreeNodeType> str_to_type = {
     {".sql", TreeNodeType::SQL},
     {".json", TreeNodeType::JSON},
     {".xml", TreeNodeType::XML},
-    {"", TreeNodeType::FILE}  // 无扩展名默认为普通文件
+    {"", TreeNodeType::FILE}
 };
 
 // 文件类型到扩展名和显示名称的映射
@@ -93,6 +93,7 @@ static const std::unordered_map<TreeNodeType, std::pair<std::string, std::string
     {TreeNodeType::XML, {".xml", "XML文件"}},
 	{TreeNodeType::DIRECTORY, {"", "目录"}},
     {TreeNodeType::FILE, {"", "文件"}}
+    
 };
 
 // 将文件类型转换为扩展名和显示名称

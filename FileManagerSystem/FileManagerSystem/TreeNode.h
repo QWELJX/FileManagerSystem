@@ -18,12 +18,12 @@ private:
 	//放在私有里面 避免在类外部被随意修改
 public:
 	
-	TreeNode(std::string name, TreeNodeType type,std::string path);
-	TreeNode(std::string name, TreeNodeType type );
-	TreeNode(std::string name);
+	TreeNode(std::string name, TreeNodeType type, std::string path);//构造函数
+	TreeNode(std::string name, TreeNodeType type);//构造函数
+	TreeNode(std::string name);//构造函数
 	virtual ~TreeNode();
 	//需要继承的方法
-	virtual void Show() = 0;
+	virtual void Show() = 0;//纯虚函数 显示信息
 
 	//获取方法
 	std::string GetName();
@@ -47,7 +47,7 @@ public:
 	//重写Show方法
 	void Show() override;
 
-	bool isNameAvailable(TreeNode * T);
+	bool isNameAvailable(std::string fileName);
 	//判断名字是否可用
 	
 	//添加子节点

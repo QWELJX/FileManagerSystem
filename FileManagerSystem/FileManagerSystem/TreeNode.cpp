@@ -85,16 +85,16 @@ TreeNode* DirectoryNode::GetOneChild(size_t index) {
     if (index >= children.size())return nullptr;
     return children[index];
 }
-bool DirectoryNode::isNameAvailable(TreeNode* T) {
+bool DirectoryNode::isNameAvailable(std::string fileName) {
     for (TreeNode* it : this->GetChild()) {
-        if (it->GetName() == T->GetName() && it->GetType() == T->GetType())
+        if ((it->GetName()+treeNodeTypeToString(it->GetType()).first) ==fileName)
             return false;
     }
     return true;
 }
 bool  DirectoryNode::RemoveChild(const std::string& childName) {
     for (auto it = children.begin(); it != children.end(); ++it) {
-        if ((*it)->GetName() == childName) {
+        if ((*it)->GetName() == childName ) {
             children.erase(it);
             return true;
         }
