@@ -6,6 +6,7 @@
 #pragma region 构造函数
 FileManager::FileManager() {
    
+    this->pathMap["C:"]= rootDirectory;
 	this->rootDirectory = new DirectoryNode("C:", "C:");//创建根目录
     this->currentDirectory = rootDirectory;
 	this->currentPath ="C:";
@@ -161,7 +162,7 @@ DirectoryNode* FileManager::mkdirRecursive(std::string path) {
 }
 std::string FileManager::getAbsolutePath(std::string path) {
     if (PathUtils::isAbsolute(path)) {
-        if (path[0] = SEPARATOR) {
+        if (path[0] == SEPARATOR) {
             path = PathUtils::join(this->rootDirectory->GetPath(),path);
         }
     }
