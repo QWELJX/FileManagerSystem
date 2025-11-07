@@ -28,7 +28,7 @@ bool FileManager::handleMkdir(std::string name) {
     }
     else {
        
-		CallBack("当前目录已有"+name + "文件夹\n");
+		CallBack("\033[31m当前目录已有"+name + "文件夹\033[0m\n");
  
 		return false;
     }
@@ -49,12 +49,12 @@ bool FileManager::handleGoto(std::string path) {
 			this->currentPath = path;
         }
         else {
-            CallBack("错误: 目标不是目录\n");
+            CallBack("\033[31m错误: 目标不是目录\033[0m\n");
 			return false;
         }
     }
     else {
-        CallBack("错误: 路径"+path+"不存在\n");
+        CallBack("\033[31m错误: 路径"+path+"不存在\033[0m\n");
 		return false;
     }
     return true;
@@ -69,25 +69,25 @@ bool FileManager::handleDelete(std::string path) {
                 return true;
             }
             else {
-				CallBack("错误: 删除失败\n");
+				CallBack("\033[31m错误: 删除失败\033[0m\n");
             }
         }
 
     }
     else {
-		CallBack("错误: 路径" + path + "不存在\n");
+		CallBack("\033[31m错误: 路径" + path + "不存在\033[0m\n");
     }
 }
 bool FileManager::HandleCreateFile(std::string name,std::string extension) {
-	
-    if (this->currentDirectory->isNameAvailable(name+extension)) {
-        FileNode* T = new FileNode(name, stringToTreeNodeType(extension), this->currentPath + SEPARATOR + name + extension);
+    std::string fullFileName = name + extension; //变量名像链家性说的那样驼峰命名
+    if (this->currentDirectory->isNameAvailable(fullFileName)) {
+        FileNode* T = new FileNode(name, stringToTreeNodeType(extension), this->currentPath + SEPARATOR + fullFileName);
         this->currentDirectory->AddChild(T);
         return true;
     }
     else {
 
-        CallBack("当前目录已有" +name +extension+ "\n");
+        CallBack("\033[31m目录" + this->currentPath + "已有" + fullFileName +"\033[0m"+"\n");
     
         return false;
     }
@@ -122,7 +122,7 @@ bool FileManager::HandleCreateFile(std::string name, std::string extension, std:
     DirectoryNode* T1 = dynamic_cast<DirectoryNode*>(FindNodeByPath(path));
     if (T1 == nullptr) 
     {
-        CallBack("错误: 路径" + path + "不存在\n");
+        CallBack("\033[31m错误: 路径" + path + "不存在\033[0m\n");
         return false;
     }
 
@@ -130,7 +130,7 @@ bool FileManager::HandleCreateFile(std::string name, std::string extension, std:
     std::string fullFileName = name + extension; //变量名像链家性说的那样驼峰命名
     if (!T1->isNameAvailable(fullFileName)) 
     {    //这个比源代码更短一点，看起来更容易懂一些
-        CallBack("目录" + path + "已有" + fullFileName + "\n");
+        CallBack("\033[31m目录" + path + "已有" + fullFileName + "\033[0m\n");
         return false;
     }
 

@@ -102,7 +102,7 @@ std::pair<std::string, std::string> treeNodeTypeToString(TreeNodeType type) {
     if (it != type_to_str.end()) {
         return it->second;
     }
-    return { "", "未知文件类型" };
+    return { "", "\033[33m未知文件类型\033[0m" };
 }
 
 TreeNodeType stringToTreeNodeType(std::string temp) {

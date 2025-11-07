@@ -86,7 +86,7 @@ void CMDManager::RunCMD(const std::vector<std::string>& tokens) {
         it->second(tokens);
     }
     else {
-        this->appendContent("无法识别命令: " + tokens[0] + "\n" + "输入 'help' 查看可用命令\n");
+        this->appendContent("\033[31m无法识别命令: " + tokens[0] + "\n" + "输入 'help' 查看可用命令\033[0m\n");
     }
 }
 
@@ -101,7 +101,7 @@ void CMDManager::Show() {
 
 void CMDManager::handleCls(const std::vector<std::string>& tokens) {
     if (tokens.size() != 1) {
-        this->appendContent("错误: cls 命令有多余参数\n");
+        this->appendContent("\033[31m错误: cls 命令有多余参数\033[0m\n");
         return;
     }
     this->clearContent();
@@ -110,7 +110,7 @@ void CMDManager::handleCls(const std::vector<std::string>& tokens) {
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
     size_t t = tokens.size();
     if (t < 2) {
-        this->appendContent("错误: 缺少名称参数\n");
+        this->appendContent("\033[31m错误: 缺少名称参数\033[0m\n");
         return;
     }
     std::string name = tokens[1];
@@ -124,14 +124,14 @@ void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
         return;
     }
     else {
-        this->appendContent("错误: md多余参数->["+tokens[3] + "" + "\n");
+        this->appendContent("\033[31m错误: md多余参数->["+tokens[3] + "" + "\033[0m\n");
         return;
     }
 }
 void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
     size_t t = tokens.size();
     if (t < 2) {
-        this->appendContent("错误: create缺少名称参数\n");
+        this->appendContent("\033[31m错误: create缺少名称参数\033[0m\n");
         return;
     }
     std::string name = tokens[1];
@@ -145,14 +145,14 @@ void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
         return;
 	}
     else {
-        this->appendContent("错误: 多余参数\n");
+        this->appendContent("\033[31m错误: 多余参数\033[0m\n");
         return;
     }
 }
 void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
     size_t t = tokens.size();
     if (t < 2) {
-        this->appendContent("错误: Delete缺少名称参数\n");
+        this->appendContent("\033[31m错误: Delete缺少名称参数\033[0m\n");
         return;
     }
     std::string path = tokens[1];
@@ -161,14 +161,14 @@ void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
 	    return;      
     }
     else {
-        this->appendContent("错误: 多余参数\n");
+        this->appendContent("\033[31m错误: 多余参数\033[0m\n");
         return;
     }
 }
 
 void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
-    if (tokens.size() <= 1) { this->appendContent("cd 缺少参数"); return; }
-	else if (tokens.size() >= 3) { this->appendContent("cd 多余参数"); return; }
+    if (tokens.size() <= 1) { this->appendContent("\033[31mcd 缺少参数\033[0m\n"); return; }
+	else if (tokens.size() >= 3) { this->appendContent("\033[31mcd 多余参数\033[0m\n"); return; }
 	FileManager::getInstance().handleGoto(tokens[1]);
    
 }
