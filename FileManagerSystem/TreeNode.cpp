@@ -39,6 +39,7 @@ DirectoryNode::DirectoryNode(std::string name, std::string path) :TreeNode(name,
 DirectoryNode::DirectoryNode(std::string name) :TreeNode(name, TreeNodeType::DIRECTORY) {
 
 }
+
 DirectoryNode::~DirectoryNode() {
 
     for (auto child : children) {
@@ -124,6 +125,15 @@ FileNode::FileNode(std::string name,TreeNodeType type, std::string path):TreeNod
 }
 FileNode::FileNode(std::string name, TreeNodeType type) :TreeNode(name,type){
 
+}
+FileNode* FileNode::Create(std::string name, std::string extension, std::string path) {
+    TreeNodeType temp = stringToTreeNodeType(extension);
+    if (temp != TreeNodeType::UNKNOWN) {
+        return new FileNode(name, temp, path);
+    }
+    else {
+        return new FileNode(name + extension, temp, path);
+    }
 }
 FileNode::~FileNode() {
 	

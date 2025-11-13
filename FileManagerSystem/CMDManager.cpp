@@ -86,7 +86,7 @@ void CMDManager::RunCMD(const std::vector<std::string>& tokens) {
         it->second(tokens);
     }
     else {
-        this->appendContent("\033[31m无法识别命令: " + tokens[0] + "\n" + "输入 'help' 查看可用命令\033[0m\n");
+        this->appendContent("\033[31m无法识别命令: \"" + tokens[0] + "\" 请输入 'help' 查看可用命令\033[0m\n");
     }
 }
 
@@ -101,7 +101,7 @@ void CMDManager::Show() {
 
 void CMDManager::handleCls(const std::vector<std::string>& tokens) {
     if (tokens.size() != 1) {
-        this->appendContent("\033[31m错误: cls 命令有多余参数\033[0m\n");
+        this->appendContent("\033[31m错误: cls 命令有多余参数 \033[0m\n");
         return;
     }
     this->clearContent();

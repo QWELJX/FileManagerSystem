@@ -2,10 +2,7 @@
 #include <string>
 #include <vector>
 
-/**
- * @brief 简化版路径处理工具类
- * 只包含最常用的路径操作功能
- */
+
 const static char SEPARATOR = '\\';
 
 class PathUtils {

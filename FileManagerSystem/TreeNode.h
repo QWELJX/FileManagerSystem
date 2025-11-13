@@ -38,9 +38,10 @@ public:
 class DirectoryNode : public TreeNode {
 private:
 	std::vector<TreeNode*> children;//放在类里 避免在类外部被随意修改
-public:
-	
 	//构造函数
+	
+	
+public:
 	DirectoryNode(std::string name, std::string path);
 	DirectoryNode(std::string name);
 	~DirectoryNode();
@@ -63,9 +64,11 @@ public:
 
 };
 class FileNode : public TreeNode {
-public:
+private:
 	FileNode(std::string name,TreeNodeType type,std::string path);
 	FileNode(std::string name,TreeNodeType type);
+public:
+	static FileNode* Create(std::string name, std::string extension, std::string path);
 	~FileNode();
 	void Show() override;
 };

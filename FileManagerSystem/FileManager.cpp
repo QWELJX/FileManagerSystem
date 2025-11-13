@@ -81,7 +81,7 @@ bool FileManager::handleDelete(std::string path) {
 bool FileManager::HandleCreateFile(std::string name,std::string extension) {
     std::string fullFileName = name + extension; //变量名像链家性说的那样驼峰命名
     if (this->currentDirectory->isNameAvailable(fullFileName)) {
-        FileNode* T = new FileNode(name, stringToTreeNodeType(extension), this->currentPath + SEPARATOR + fullFileName);
+        FileNode* T = FileNode::Create(name, extension, this->currentPath + SEPARATOR + fullFileName);
         this->currentDirectory->AddChild(T);
         return true;
     }
@@ -92,28 +92,6 @@ bool FileManager::HandleCreateFile(std::string name,std::string extension) {
         return false;
     }
 }
-//bool FileManager::HandleCreateFile(std::string name,std::string extension, std::string path) {
-//    path = getAbsolutePath(path);
-//    DirectoryNode* T1 = dynamic_cast<DirectoryNode*>(FindNodeByPath(path));
-//    if (T1 != nullptr) {
-//        
-//        if(T1->isNameAvailable(name+extension)){
-//            FileNode* T2 = new FileNode(name, stringToTreeNodeType(extension), path + name + extension);
-//            T1->AddChild(T2);
-//           
-//            return true;
-//        }
-//        else {
-//            CallBack("目录" + path + "已有" +name + extension + "\n");
-//          
-//            return false;
-//		}
-//    }
-//    else {
-//        CallBack("错误: 路径" + path + "不存在\n");
-//		return false;
-//    }  
-//}
 
 bool FileManager::HandleCreateFile(std::string name, std::string extension, std::string path) {
     path = getAbsolutePath(path); // 确保路径为绝对路径（已有逻辑，保留）
@@ -136,7 +114,7 @@ bool FileManager::HandleCreateFile(std::string name, std::string extension, std:
 
     // 关键：拼接文件路径时添加路径分隔符SEPARATOR
     std::string filePath = path + SEPARATOR + fullFileName; // 如 "C:\program" + "\" + "a.txt" → "C:\program\a.txt"
-    FileNode* T2 = new FileNode(name, stringToTreeNodeType(extension), filePath);
+    FileNode* T2 =FileNode::Create(name, extension, filePath);
     T1->AddChild(T2);//本来想写 SetNodeInPathMap(filePath, T2); // 这个步骤在AddChild中已经处理，无需重复调用
     return true;
 }
