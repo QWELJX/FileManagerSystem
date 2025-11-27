@@ -21,7 +21,9 @@ TreeNode::~TreeNode() {
 
 #pragma region 封装接口
 std::string TreeNode::GetName() { return this->name; }
-std::string TreeNode::GetPath() { return this->path; }
+std::string TreeNode::GetPath() {
+std::cout << "路径内容: " << this->path << ", 长度: " << this->path.length() << std::endl;
+       return this->path; }
 TreeNodeType TreeNode::GetType() { return this->type; }
 size_t TreeNode::GetSize() { return this->size; }
 void TreeNode::SetName(std::string n) { this->name = n; }
@@ -96,6 +98,9 @@ bool DirectoryNode::isNameAvailable(std::string fileName) {
 bool  DirectoryNode::RemoveChild(const std::string& childName) {
     for (auto it = children.begin(); it != children.end(); ++it) {
         if ((*it)->GetName() == childName ) {
+            std::string childPath = (*it)->GetPath();
+            delete* it;
+            FileManager::getInstance().RemoveNodeFromPathMap(childPath);
             children.erase(it);
             return true;
         }
@@ -105,8 +110,8 @@ bool  DirectoryNode::RemoveChild(const std::string& childName) {
 bool  DirectoryNode::RemoveChild(TreeNode* p) {
     for (auto it = children.begin(); it != children.end(); ++it) {
         if ((*it)->GetName() == p->GetName() && (*it)->GetType() == p->GetType()) {
+            // 用于 move：只从 children 容器中移除，但不 delete 指针（所有权由调用者转移）
             children.erase(it);
-			delete p;
             return true;
         }
 	}

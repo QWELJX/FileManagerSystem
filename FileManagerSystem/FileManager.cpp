@@ -6,7 +6,7 @@
 #pragma region 构造函数
 FileManager::FileManager() {
    
-    this->pathMap["C:"]= rootDirectory;
+    //this->pathMap["C:"]= rootDirectory;
 	this->rootDirectory = new DirectoryNode("C:", "C:");//创建根目录
     this->currentDirectory = rootDirectory;
 	this->currentPath ="C:";
@@ -119,6 +119,74 @@ bool FileManager::HandleCreateFile(std::string name, std::string extension, std:
     return true;
 }
 
+//bool FileManager::handleMove(std::string oldPath, std::string newPath) {
+//    oldPath = getAbsolutePath(oldPath);
+//    newPath = getAbsolutePath(newPath);
+//    TreeNode* node = FindNodeByPath(oldPath);
+//    DirectoryNode* newParentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(newPath)));
+//    if (node == nullptr) {
+//        CallBack("\033[31m错误: 源路径" + oldPath + "不存在\033[0m\n");
+//        return false;
+//    }
+//    if (newParentNode == nullptr) {
+//        CallBack("\033[31m错误: 目标路径" + newPath + "不存在\033[0m\n");
+//        return false;
+//    }
+//    if (!newParentNode->isNameAvailable(node->GetName())) {
+//        CallBack("\033[31m错误: 目标目录已有同名文件或文件夹\033[0m\n");
+//        return false;
+//    }
+//    DirectoryNode* oldParentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(oldPath)));
+//    if (oldParentNode != nullptr) {
+//        if (oldParentNode->RemoveChild(node)) {
+//            newParentNode->AddChild(node);
+//            node->SetPath(newPath);
+//            SetNodeInPathMap(newPath, node);
+//            RemoveNodeFromPathMap(oldPath);
+//            return true;
+//        }
+//        else {
+//            CallBack("\033[31m错误: 移动失败\033[0m\n");
+//            return false;
+//        }
+//    }
+//	return false;
+//}
+
+bool FileManager::handleMove(std::string oldPath, std::string newPath) {
+    oldPath = getAbsolutePath(oldPath);
+    newPath = getAbsolutePath(newPath);
+    TreeNode* node = FindNodeByPath(oldPath);
+    DirectoryNode* newParentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(newPath)));
+    if (node == nullptr) {
+        CallBack("\033[31m错误: 源路径" + oldPath + "不存在\033[0m\n");
+        return false;
+    }
+    if (newParentNode == nullptr) {
+        CallBack("\033[31m错误: 目标路径" + newPath + "不存在\033[0m\n");
+        return false;
+    }
+    if (!newParentNode->isNameAvailable(node->GetName())) {
+        CallBack("\033[31m错误: 目标目录已有同名文件或文件夹\033[0m\n");
+        return false;
+    }
+    DirectoryNode* oldParentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(oldPath)));
+    if (oldParentNode != nullptr) {
+        if (oldParentNode->RemoveChild(node)) {
+            // 1. 递归更新路径和映射
+            updateAllChildPaths(node, newPath);
+            // 2. 插入新父节点
+            newParentNode->AddChild(node);
+            return true;
+        }
+        else {
+            CallBack("\033[31m错误: 移动失败\033[0m\n");
+            return false;
+        }
+    }
+    return false;
+}
+
 #pragma endregion
 
 #pragma region 接口封装
@@ -173,6 +241,32 @@ std::string FileManager::getAbsolutePath(std::string path) {
         path = PathUtils::join(this->currentPath, path);
     }
 	return path;
+}
+
+
+
+void FileManager::updateAllChildPaths(TreeNode* node, const std::string& newPath) {
+    
+    if (node == nullptr) return;
+    // 保存旧路径用于从pathMap中移除
+    std::string oldPath = node->GetPath();
+
+    // 更新当前节点的路径
+    node->SetPath(newPath);
+    // 更新pathMap中当前节点的映射（先删后加，处理可能的路径覆盖）
+    RemoveNodeFromPathMap(oldPath);
+    SetNodeInPathMap(newPath, node);
+
+    // 如果是目录节点，递归更新所有子节点
+    DirectoryNode* dirNode = dynamic_cast<DirectoryNode*>(node);
+    if (dirNode != nullptr) {
+        const std::vector<TreeNode*>& children = dirNode->GetChild();
+        for (TreeNode* child : children) {
+            // 构建子节点的新路径（直接用child->GetName()，已包含后缀）
+            std::string childNewPath = PathUtils::join(newPath, child->GetName());
+            updateAllChildPaths(child, childNewPath);
+        }
+    }
 }
 #pragma endregion
 

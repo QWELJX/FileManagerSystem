@@ -28,6 +28,8 @@ private:
 
 	std::string getAbsolutePath(std::string path);
 
+	void updateAllChildPaths(TreeNode* node, const std::string& newPath);
+
 public:
 	static FileManager& getInstance() {
 		static FileManager instance;
@@ -71,6 +73,6 @@ public:
 	bool handleGoto(std::string path);
 	////»ØÍË
 
-	//
-	
+	//ÒÆ¶¯
+	bool handleMove(std::string oldPath, std::string newPath);
 };
