@@ -149,6 +149,82 @@ void FileManager::Show() {
 void FileManager::CallBack(std::string content) {
     CMDManager::getInstance().appendContent(content);
 }
+// 在FileManager的操作函数区域添加：
+bool FileManager::handleRename(std::string oldPath, std::string newName) {
+    oldPath = getAbsolutePath(oldPath);
+    TreeNode* node = FindNodeByPath(oldPath);
+    if (node == nullptr) {
+        CallBack("错误: 原路径" + oldPath + "不存在\n");
+        return false;
+    }
+
+    std::string parentPath = PathUtils::getDirectory(oldPath);
+    DirectoryNode* parentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(parentPath));
+    if (parentNode == nullptr) {
+        CallBack("错误: 父目录不存在\n");
+        return false;
+    }
+
+    TreeNode* tempNode = nullptr;
+    std::string newTempPath = PathUtils::join(parentPath, newName);
+
+    if (node->GetType() == TreeNodeType::DIRECTORY) {
+        tempNode = new DirectoryNode(newName, newTempPath);
+    }
+    else {
+        std::string oldFullName = node->GetName() + treeNodeTypeToString(node->GetType()).first;
+        std::string ext = PathUtils::getExtension(oldFullName);
+        std::string newFileFullPath = newTempPath + ext;
+        tempNode = new FileNode(newName, node->GetType(), newFileFullPath);
+    }
+
+    if (!parentNode->isNameAvailable(newName)) {
+        CallBack("错误: 父目录中已存在同名同类型的节点\n");
+        delete tempNode;
+        return false;
+    }
+    delete tempNode;
+
+    std::string newPath = PathUtils::join(parentPath, newName);
+    if (node->GetType() != TreeNodeType::DIRECTORY) {
+        std::string oldFullName = node->GetName() + treeNodeTypeToString(node->GetType()).first;
+        std::string ext = PathUtils::getExtension(oldFullName);
+        newPath += ext;
+    }
+
+    RemoveNodeFromPathMap(oldPath);
+    RemoveNodeFromPathMap(oldPath + SEPARATOR); 
+
+    node->SetName(newName);
+    node->SetPath(newPath);
+
+    SetNodeInPathMap(newPath, node);
+    if (node->GetType() == TreeNodeType::DIRECTORY) {
+        SetNodeInPathMap(newPath + SEPARATOR, node); 
+    }
+
+    if (node->GetType() == TreeNodeType::DIRECTORY) {
+        DirectoryNode* dirNode = dynamic_cast<DirectoryNode*>(node);
+        updateChildPaths(dirNode, oldPath, newPath);
+    }
+
+    CallBack("成功: 重命名为" + newName + "\n");
+    return true;
+}
+void FileManager::updateChildPaths(DirectoryNode* dirNode, std::string oldParentPath, std::string newParentPath) {
+    for (TreeNode* child : dirNode->GetChild()) {
+        std::string oldChildPath = child->GetPath();
+        std::string newChildPath = oldChildPath.replace(0, oldParentPath.length(), newParentPath);
+
+        RemoveNodeFromPathMap(oldChildPath);
+        child->SetPath(newChildPath);
+        SetNodeInPathMap(newChildPath, child);
+
+        if (child->GetType() == TreeNodeType::DIRECTORY) {
+            updateChildPaths(dynamic_cast<DirectoryNode*>(child), oldParentPath, newParentPath);
+        }
+    }
+}
 #pragma endregion
 #pragma region 纯工具
 DirectoryNode* FileManager::mkdirRecursive(std::string path) {

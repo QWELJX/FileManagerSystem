@@ -61,6 +61,8 @@ public:
 	/*FileNode* SearchNode(std::string);*/
 	//操作
 	//添加文件
+	bool handleRename(std::string oldPath, std::string newName);
+	void updateChildPaths(DirectoryNode* dirNode, std::string oldParentPath, std::string newParentPath);
 	bool handleMkdir(std::string name,std::string path);
 	bool handleMkdir(std::string name);
 	bool HandleCreateFile(std::string name,std::string extension);

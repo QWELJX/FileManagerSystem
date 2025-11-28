@@ -9,7 +9,11 @@
 CMDManager::CMDManager():CONTENT("") {
     //初始化命令映射
     {
-
+        // 在CMDManager构造函数的commandMap初始化中添加：
+        commandMap["rename"] = [this](const std::vector<std::string>& tokens) -> void {
+            this->handleRename(tokens);
+            };
+        commandMap["ren"] = commandMap["rename"]; // 别名支持
         commandMap["clear"] = [this](const std::vector<std::string>& tokens) -> void {
             this->handleCls(tokens);
             };
@@ -174,6 +178,21 @@ void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
 }
 void CMDManager::handleDir(const std::vector<std::string>& tokens) {
     
+}
+// 在CMDManager的函数区域添加：
+void CMDManager::handleRename(const std::vector<std::string>& tokens) {
+    size_t t = tokens.size();
+    if (t < 3) {
+        this->appendContent("错误: rename参数不足，用法：rename <原路径> <新名称>\n");
+        return;
+    }
+    if (t > 3) {
+        this->appendContent("错误: rename参数过多，用法：rename <原路径> <新名称>\n");
+        return;
+    }
+    std::string oldPath = tokens[1];
+    std::string newName = tokens[2];
+    FileManager::getInstance().handleRename(oldPath, newName);
 }
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
 	this->appendContent("create <name> [path]                  - 添加文件\n");
