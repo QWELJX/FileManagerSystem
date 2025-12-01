@@ -31,6 +31,7 @@ private:
     void handleHelp(const std::vector<std::string>& tokens);//帮助
     void handleMove(const std::vector<std::string>& tokens);//移动
 
+	void handleRename(const std::vector<std::string>& tokens);//重命名
     // 工具函数
     bool isPureNumber(const std::string& str);//判断纯数字
     std::string toLower(const std::string& str);  // 添加这个声明

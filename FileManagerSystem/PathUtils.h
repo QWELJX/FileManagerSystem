@@ -76,7 +76,6 @@ public:
      * @brief 检查路径是否以指定扩展名结尾
      */
     static bool hasExtension(const std::string& path, const std::string& extension);
-
 private:
     // 内部工具函数
     static bool isSeparator(char c);
