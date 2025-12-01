@@ -176,7 +176,7 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
     
 }
 void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
-	this->appendContent("create <name> [path]                  - 添加文件\n");
+	this->appendContent("  create <name> [path]                - 添加文件\n");
     this->appendContent("  cls/clear                           - 清屏\n");
     this->appendContent("  md <name> [path]                    - 添加目录\n");//添加
     this->appendContent("  del/delete <name>                   - 删除\n");
