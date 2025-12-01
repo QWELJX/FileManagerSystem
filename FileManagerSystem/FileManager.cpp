@@ -151,64 +151,86 @@ void FileManager::CallBack(std::string content) {
 }
 // 在FileManager的操作函数区域添加：
 bool FileManager::handleRename(std::string oldPath, std::string newName) {
+    // 1. 基础校验：旧路径存在
     oldPath = getAbsolutePath(oldPath);
     TreeNode* node = FindNodeByPath(oldPath);
-    if (node == nullptr) {
+    if (!node) {
         CallBack("错误: 原路径" + oldPath + "不存在\n");
         return false;
     }
 
+    // 2. 基础校验：父目录存在
     std::string parentPath = PathUtils::getDirectory(oldPath);
     DirectoryNode* parentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(parentPath));
-    if (parentNode == nullptr) {
+    if (!parentNode) {
         CallBack("错误: 父目录不存在\n");
         return false;
     }
 
-    TreeNode* tempNode = nullptr;
-    std::string newTempPath = PathUtils::join(parentPath, newName);
-
-    if (node->GetType() == TreeNodeType::DIRECTORY) {
-        tempNode = new DirectoryNode(newName, newTempPath);
-    }
-    else {
-        std::string oldFullName = node->GetName() + treeNodeTypeToString(node->GetType()).first;
-        std::string ext = PathUtils::getExtension(oldFullName);
-        std::string newFileFullPath = newTempPath + ext;
-        tempNode = new FileNode(newName, node->GetType(), newFileFullPath);
-    }
-
-    if (!parentNode->isNameAvailable(newName)) {
-        CallBack("错误: 父目录中已存在同名同类型的节点\n");
-        delete tempNode;
+    // 3. 基础校验：新名称不含路径分隔符
+    if (newName.find(SEPARATOR) != std::string::npos) {
+        CallBack("错误: 新名称不能包含路径分隔符\n");
         return false;
     }
-    delete tempNode;
 
-    std::string newPath = PathUtils::join(parentPath, newName);
-    if (node->GetType() != TreeNodeType::DIRECTORY) {
-        std::string oldFullName = node->GetName() + treeNodeTypeToString(node->GetType()).first;
-        std::string ext = PathUtils::getExtension(oldFullName);
-        newPath += ext;
+    // 4. 核心：处理新名称和扩展名（不用工具函数，原生字符串操作）
+    std::string newType;   
+    std::string pureName;   
+    size_t dotPos = newName.find_last_of('.');
+
+    if (dotPos != std::string::npos) {
+       
+        newType = newName.substr(dotPos);  
+        pureName = newName.substr(0, dotPos); 
+    }
+    else {
+        newType = treeNodeTypeToString(node->GetType()).first;  
+        pureName = newName;  
     }
 
-    RemoveNodeFromPathMap(oldPath);
-    RemoveNodeFromPathMap(oldPath + SEPARATOR); 
+    // 5. 构造新完整路径
+    std::string newFullName = pureName + newType;  
+    std::string newPath = PathUtils::join(parentPath, newFullName);  
 
-    node->SetName(newName);
+    // 6. 冲突检查
+    bool isConflict = false;
+   
+    for (TreeNode* child : parentNode->GetChild()) {
+        if (child->GetName() == pureName && child->GetType() == node->GetType()) {
+            isConflict = true;
+            break;
+        }
+    }
+    if (isConflict) {
+        CallBack("错误: 父目录中已存在同名同类型的节点\n");
+        return false;
+    }
+
+    // 7. 更新节点属性和路径映射
+    RemoveNodeFromPathMap(oldPath);
+    RemoveNodeFromPathMap(oldPath + SEPARATOR);  // 清理旧映射（含目录分隔符）
+
+    node->SetName(pureName);
     node->SetPath(newPath);
 
+ 
+    if (node->GetType() != TreeNodeType::DIRECTORY) {
+        TreeNodeType newFileType = stringToTreeNodeType(newType);
+        node->SetType(newFileType);  
+    }
+
+   
     SetNodeInPathMap(newPath, node);
     if (node->GetType() == TreeNodeType::DIRECTORY) {
-        SetNodeInPathMap(newPath + SEPARATOR, node); 
+        SetNodeInPathMap(newPath + SEPARATOR, node);  // 目录额外映射
     }
 
+    // 8. 目录重命名：递归更新子节点路径
     if (node->GetType() == TreeNodeType::DIRECTORY) {
-        DirectoryNode* dirNode = dynamic_cast<DirectoryNode*>(node);
-        updateChildPaths(dirNode, oldPath, newPath);
+        updateChildPaths(dynamic_cast<DirectoryNode*>(node), oldPath, newPath);
     }
 
-    CallBack("成功: 重命名为" + newName + "\n");
+    CallBack("成功: 重命名为" + newFullName + "\n");
     return true;
 }
 void FileManager::updateChildPaths(DirectoryNode* dirNode, std::string oldParentPath, std::string newParentPath) {
