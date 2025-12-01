@@ -29,6 +29,7 @@ private:
     //void handleBack(const std::vector<std::string>& tokens);多余
     void handleDir(const std::vector<std::string>& tokens);//!
     void handleHelp(const std::vector<std::string>& tokens);//帮助
+    void handleMove(const std::vector<std::string>& tokens);//移动
 
     // 工具函数
     bool isPureNumber(const std::string& str);//判断纯数字

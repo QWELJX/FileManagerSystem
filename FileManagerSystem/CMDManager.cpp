@@ -46,6 +46,12 @@ CMDManager::CMDManager():CONTENT("") {
         commandMap["help"] = [this](const std::vector<std::string>& tokens) -> void {
             this->handleHelp(tokens);
             };
+
+		commandMap["move"] = [this](const std::vector<std::string>& tokens) -> void {
+            this->handleMove(tokens);
+			};
+        
+		commandMap["mov"] = commandMap["move"];
     }
 
 };
@@ -183,6 +189,13 @@ void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
     this->appendContent("  goto/cd <name>                      - 进入目录\n");
     this->appendContent("  help                                - 显示帮助\n");
     this->appendContent("  quit                                - 退出程序\n");
+	this->appendContent("  move/mov <oldPath> <newPath>            - 移动文件或文件夹\n");
+}
+void CMDManager::handleMove(const std::vector<std::string>& tokens) {
+    if (tokens.size() <= 1) { this->appendContent("\033[31mmove 缺少参数\033[0m\n"); return; }
+    else if (tokens.size() >= 4) { this->appendContent("\033[31mmove 多余参数\033[0m\n"); return; }
+    FileManager::getInstance().handleMove(tokens[1], tokens[2]);
+
 }
 #pragma endregion
 
