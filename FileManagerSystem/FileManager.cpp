@@ -150,9 +150,10 @@ void FileManager::CallBack(std::string content) {
     CMDManager::getInstance().appendContent(content);
 }
 // 在FileManager的操作函数区域添加：
-bool FileManager::handleRename(std::string oldPath, std::string newName) {
+bool FileManager::handleRename(std::string oldName, std::string newName) {
     // 1. 基础校验：旧路径存在
-    oldPath = getAbsolutePath(oldPath);
+
+    std::string oldPath = getAbsolutePath(oldName);
     TreeNode* node = FindNodeByPath(oldPath);
     if (!node) {
         CallBack("错误: 原路径" + oldPath + "不存在\n");
@@ -184,18 +185,24 @@ bool FileManager::handleRename(std::string oldPath, std::string newName) {
         pureName = newName.substr(0, dotPos); 
     }
     else {
-        newType = treeNodeTypeToString(node->GetType()).first;  
+        size_t dotPos = oldName.find_last_of('.');
+        newType = oldName.substr(dotPos);
         pureName = newName;  
     }
-
+	
     // 5. 构造新完整路径
     std::string newFullName = pureName + newType;  
     std::string newPath = PathUtils::join(parentPath, newFullName);  
-
+    if (node->GetType() == TreeNodeType::DIRECTORY ) {
+		pureName = newName;
+	}
     // 6. 冲突检查
     bool isConflict = false;
    
     for (TreeNode* child : parentNode->GetChild()) {
+        if (child == node) {
+            continue;
+        }
         if (child->GetName() == pureName && child->GetType() == node->GetType()) {
             isConflict = true;
             break;
@@ -209,10 +216,7 @@ bool FileManager::handleRename(std::string oldPath, std::string newName) {
     // 7. 更新节点属性和路径映射
     RemoveNodeFromPathMap(oldPath);
     RemoveNodeFromPathMap(oldPath + SEPARATOR);  // 清理旧映射（含目录分隔符）
-	if (node->GetType() == TreeNodeType::DIRECTORY) {
-		pureName = newName; // 目录保留完整名称
-	}
-    node->SetName(pureName);
+    node->SetName(newFullName);
     node->SetPath(newPath);
 
  
