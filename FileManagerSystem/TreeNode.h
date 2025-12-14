@@ -64,7 +64,7 @@ public:
 
 };
 class FileNode : public TreeNode {
-public:
+private:
 	FileNode(std::string name,TreeNodeType type,std::string path);
 	FileNode(std::string name,TreeNodeType type);
 public:
