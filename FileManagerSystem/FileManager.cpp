@@ -157,16 +157,24 @@ bool FileManager::handleMove(std::string oldPath, std::string newPath) {
     oldPath = getAbsolutePath(oldPath);
     newPath = getAbsolutePath(newPath);
     TreeNode* node = FindNodeByPath(oldPath);
-    DirectoryNode* newParentNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(newPath)));
-    if (node == nullptr) {
+    TreeNode* newnode = FindNodeByPath(newPath);
+	//如果newPath不是目录 而是文件 则需要处理
+    if (newnode->GetType() != TreeNodeType::DIRECTORY) {
+        // 获取目标文件的目录
+        CallBack("\033[31m错误: 新路径" + newPath + "不是一个目录,不能进行move\033[0m\n");
+        return false;
+    }
+	// 获取目标目录节点
+    DirectoryNode* newDirectoryNode = dynamic_cast<DirectoryNode*>(FindNodeByPath(PathUtils::getDirectory(newPath)));
+	if (node == nullptr) {//源路径不存在
         CallBack("\033[31m错误: 源路径" + oldPath + "不存在\033[0m\n");
         return false;
     }
-    if (newParentNode == nullptr) {
+	if (newDirectoryNode == nullptr) {//目标路径不存在
         CallBack("\033[31m错误: 目标路径" + newPath + "不存在\033[0m\n");
         return false;
     }
-    if (!newParentNode->isNameAvailable(node->GetName())) {
+    if (!newDirectoryNode->isNameAvailable(node->GetName())) {
         CallBack("\033[31m错误: 目标目录已有同名文件或文件夹\033[0m\n");
         return false;
     }
@@ -176,7 +184,7 @@ bool FileManager::handleMove(std::string oldPath, std::string newPath) {
             // 1. 递归更新路径和映射
             updateAllChildPaths(node, newPath);
             // 2. 插入新父节点
-            newParentNode->AddChild(node);
+            newDirectoryNode->AddChild(node);
             return true;
         }
         else {
