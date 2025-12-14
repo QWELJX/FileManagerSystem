@@ -209,7 +209,9 @@ bool FileManager::handleRename(std::string oldPath, std::string newName) {
     // 7. 更新节点属性和路径映射
     RemoveNodeFromPathMap(oldPath);
     RemoveNodeFromPathMap(oldPath + SEPARATOR);  // 清理旧映射（含目录分隔符）
-
+	if (node->GetType() == TreeNodeType::DIRECTORY) {
+		pureName = newName; // 目录保留完整名称
+	}
     node->SetName(pureName);
     node->SetPath(newPath);
 
