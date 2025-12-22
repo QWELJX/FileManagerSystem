@@ -1,248 +1,265 @@
+ï»¿#include "CMDManager.h"
 
-#include <algorithm>
-#include <sstream>
-#include <cctype> 
-#include "CMDManager.h"
-#include "FileManager.h" 
+// æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ–å‘½ä»¤æ˜ å°„
+CMDManager::CMDManager() {
+    initCommands();
+    appendOutput("æ–‡ä»¶ç®¡ç†å™¨å·²å¯åŠ¨ã€‚è¾“å…¥ 'help' æŸ¥çœ‹å‘½ä»¤åˆ—è¡¨ã€‚\n");
+    appendOutput("å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
+}
 
-#pragma region ¹¹Ôìº¯Êı
-CMDManager::CMDManager():CONTENT("") {
-    //³õÊ¼»¯ÃüÁîÓ³Éä
-    {
-        // ÔÚCMDManager¹¹Ôìº¯ÊıµÄcommandMap³õÊ¼»¯ÖĞÌí¼Ó£º
-        commandMap["rename"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleRename(tokens);
-            };
-        commandMap["ren"] = commandMap["rename"]; // ±ğÃûÖ§³Ö
-        commandMap["clear"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleCls(tokens);
-            };
+void CMDManager::initCommands() {
+    command_map = {
+        {"help",    [this](auto& t) { handleHelp(t); }},
+        {"dir",     [this](auto& t) { handleDir(t); }},
+        {"ls",      [this](auto& t) { handleDir(t); }},  // åˆ«å
+        {"mkdir",   [this](auto& t) { handleMkdir(t); }},
+        {"touch",   [this](auto& t) { handleTouch(t); }},
+        {"del",     [this](auto& t) { handleDel(t); }},
+        {"rm",      [this](auto& t) { handleDel(t); }},  // åˆ«å
+        {"move",    [this](auto& t) { handleMove(t); }},
+        {"mv",      [this](auto& t) { handleMove(t); }}, // åˆ«å
+        {"rename",  [this](auto& t) { handleRename(t); }},
+        {"cd",      [this](auto& t) { handleCd(t); }},
+        {"cls",     [this](auto& t) { handleCls(t); }},
+        {"clear",   [this](auto& t) { handleCls(t); }},  // åˆ«å
+        {"pwd",     [this](auto& t) { handlePwd(t); }},
+        {"exists",  [this](auto& t) { handleExists(t); }}
+    };
+}
 
-        commandMap["cls"] = commandMap["clear"];
+// è§£æå‘½ä»¤ä¸ºä»¤ç‰Œ
+std::vector<std::string> CMDManager::parseCommand(const std::string& cmd) {
+    std::vector<std::string> tokens;
+    std::istringstream iss(cmd);
+    std::string token;
 
-        commandMap["mkdir"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleMkdir(tokens);
-            };
+    while (iss >> token) {
+        // å¤„ç†å¸¦å¼•å·çš„å‚æ•°
+        if (!token.empty() && token.front() == '"') {
+            std::string quoted;
+            quoted = token.substr(1);
 
-		commandMap["md"] = commandMap["mkdir"];
-        commandMap["create"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->HandleCreateFile(tokens);
-            };
-        commandMap["touch"] = commandMap["create"];
-
-        commandMap["delete"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleDelete(tokens);
-            };
-
-        commandMap["del"] = commandMap["delete"];
-
-        commandMap["goto"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleGoto(tokens);
-            };
-
-        commandMap["cd"] = commandMap["goto"];
-
-        commandMap["dir"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleDir(tokens);
-            };
-
-
-        commandMap["help"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleHelp(tokens);
-            };
-
-		commandMap["move"] = [this](const std::vector<std::string>& tokens) -> void {
-            this->handleMove(tokens);
-			};
-        
-		commandMap["mov"] = commandMap["move"];
-    }
-
-};
-#pragma endregion
-
-
-
-void CMDManager::Run() {
-    this->appendContent("ÊäÈë help ²é¿´°ïÖú\n");
-    while (true) {
-        this->Show();
-        std::string content;
-        std::getline(std::cin, content);
-        this->appendContent(content + "\n");
-
-        std::stringstream ss(content);
-        std::vector<std::string> tokens;
-        std::string token;
-
-        while (ss >> token) {
+            while (iss >> token) {
+                quoted += " " + token;
+                if (token.back() == '"') {
+                    quoted.pop_back();  // ç§»é™¤ç»“å°¾å¼•å·
+                    break;
+                }
+            }
+            tokens.push_back(quoted);
+        }
+        else {
             tokens.push_back(token);
         }
-
-        if (tokens.empty()) {
-            continue;
-        }
-        else if (tokens[0] == "quit") {
-            break;
-        }
-        this->RunCMD(tokens);
     }
+    return tokens;
 }
 
-void CMDManager::RunCMD(const std::vector<std::string>& tokens) {
-    std::string command = toLower(tokens[0]);
-    auto it = commandMap.find(command);
-    if (it != commandMap.end()) {
-        it->second(tokens);
-    }
-    else {
-        this->appendContent("\033[31mÎŞ·¨Ê¶±ğÃüÁî: \"" + tokens[0] + "\" ÇëÊäÈë 'help' ²é¿´¿ÉÓÃÃüÁî\033[0m\n");
-    }
+// è½¬æ¢ä¸ºå°å†™
+std::string CMDManager::toLower(const std::string& str) {
+    std::string lower = str;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    return lower;
 }
 
-void CMDManager::Show() {
-    system("cls");
-    FileManager::getInstance().Show();
-	this->appendContent(FileManager::getInstance().GetCurrentPath() + "> ");//Ö±½Ó»ñÈ¡ÊµÀı ²»ÓÃÔÙÅĞ¶ÏÖ¸Õë
-    this->showContent();
+// æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
+void CMDManager::showError(const std::string& msg) {
+    appendOutput("[é”™è¯¯] " + msg + "\n");
 }
 
-#pragma region º¯Êı
+// === å‘½ä»¤å¤„ç†å‡½æ•°å®ç° ===
 
-void CMDManager::handleCls(const std::vector<std::string>& tokens) {
-    if (tokens.size() != 1) {
-        this->appendContent("\033[31m´íÎó: cls ÃüÁîÓĞ¶àÓà²ÎÊı \033[0m\n");
-        return;
+void CMDManager::handleHelp(const std::vector<std::string>&) {
+    appendOutput("å¯ç”¨å‘½ä»¤:\n");
+    appendOutput("  help              - æ˜¾ç¤ºæ­¤å¸®åŠ©ä¿¡æ¯\n");
+    appendOutput("  dir, ls           - åˆ—å‡ºå½“å‰ç›®å½•å†…å®¹\n");
+    appendOutput("  mkdir <ç›®å½•å>    - åˆ›å»ºæ–°ç›®å½•\n");
+    appendOutput("  touch <æ–‡ä»¶å>    - åˆ›å»ºæ–°æ–‡ä»¶\n");
+    appendOutput("  del <è·¯å¾„>        - åˆ é™¤æ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  move <æº> <ç›®æ ‡>  - ç§»åŠ¨/å¤åˆ¶æ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  rename <æ—§> <æ–°>  - é‡å‘½åæ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  cd <è·¯å¾„>         - åˆ‡æ¢å½“å‰ç›®å½•\n");
+    appendOutput("  cls, clear        - æ¸…å±\n");
+    appendOutput("  pwd               - æ˜¾ç¤ºå½“å‰ç›®å½•\n");
+    appendOutput("  exists <è·¯å¾„>     - æ£€æŸ¥è·¯å¾„æ˜¯å¦å­˜åœ¨\n");
+    appendOutput("  exit, quit        - é€€å‡ºç¨‹åº\n");
+}
+
+void CMDManager::handleDir(const std::vector<std::string>& tokens) {
+    bool detailed = false;
+    if (tokens.size() > 1 && (tokens[1] == "-l" || tokens[1] == "/l")) {
+        detailed = true;
     }
-    this->clearContent();
+    appendOutput(fs_core.listDirectory(detailed));
 }
 
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
-    size_t t = tokens.size();
-    if (t < 2) {
-        this->appendContent("\033[31m´íÎó: È±ÉÙÃû³Æ²ÎÊı\033[0m\n");
+    if (tokens.size() < 2) {
+        showError("ç”¨æ³•: mkdir <ç›®å½•å>");
         return;
     }
-    std::string name = tokens[1];
-    if (t == 2) {
-        FileManager::getInstance().handleMkdir(name);
-        return;
-    }
-    else if (t == 3) {
-        std::string path = tokens[2];
-        FileManager::getInstance().handleMkdir(name,path);
-        return;
-    }
-    else {
-        this->appendContent("\033[31m´íÎó: md¶àÓà²ÎÊı->["+tokens[3] + "" + "\033[0m\n");
-        return;
-    }
-}
-void CMDManager::HandleCreateFile(const std::vector<std::string>& tokens) {
-    size_t t = tokens.size();
-    if (t < 2) {
-        this->appendContent("\033[31m´íÎó: createÈ±ÉÙÃû³Æ²ÎÊı\033[0m\n");
-        return;
-    }
-    std::string name = tokens[1];
-    if (t == 2) {
-        FileManager::getInstance().HandleCreateFile(PathUtils::getStem(name),PathUtils::getExtension(name));
-        return;
-    }
-    else if (t == 3) {
-        std::string path = tokens[2];
-        FileManager::getInstance().HandleCreateFile(PathUtils::getStem(name), PathUtils::getExtension(name), path);
-        return;
-	}
-    else {
-        this->appendContent("\033[31m´íÎó: ¶àÓà²ÎÊı\033[0m\n");
-        return;
-    }
-}
-void CMDManager::handleDelete(const std::vector<std::string>& tokens) {
-    size_t t = tokens.size();
-    if (t < 2) {
-        this->appendContent("\033[31m´íÎó: DeleteÈ±ÉÙÃû³Æ²ÎÊı\033[0m\n");
-        return;
-    }
-    std::string path = tokens[1];
-    if (t == 2) {
-        FileManager::getInstance().handleDelete(path);   
-	    return;      
-    }
-    else {
-        this->appendContent("\033[31m´íÎó: ¶àÓà²ÎÊı\033[0m\n");
-        return;
+
+    if (fs_core.createDirectory(tokens[1])) {
+        appendOutput("ç›®å½•åˆ›å»ºæˆåŠŸ: " + tokens[1] + "\n");
     }
 }
 
-void CMDManager::handleGoto(const std::vector<std::string>& tokens) {
-    if (tokens.size() <= 1) { this->appendContent("\033[31mcd È±ÉÙ²ÎÊı\033[0m\n"); return; }
-	else if (tokens.size() >= 3) { this->appendContent("\033[31mcd ¶àÓà²ÎÊı\033[0m\n"); return; }
-	FileManager::getInstance().handleGoto(tokens[1]);
-   
-}
-void CMDManager::handleDir(const std::vector<std::string>& tokens) {
-    
-}
-// ÔÚCMDManagerµÄº¯ÊıÇøÓòÌí¼Ó£º
-void CMDManager::handleRename(const std::vector<std::string>& tokens) {
-    size_t t = tokens.size();
-    if (t < 3) {
-        this->appendContent("´íÎó: rename²ÎÊı²»×ã£¬ÓÃ·¨£ºrename <Ô­Â·¾¶> <ĞÂÃû³Æ>\n");
+void CMDManager::handleTouch(const std::vector<std::string>& tokens) {
+    if (tokens.size() < 2) {
+        showError("ç”¨æ³•: touch <æ–‡ä»¶å>");
         return;
     }
-    if (t > 3) {
-        this->appendContent("´íÎó: rename²ÎÊı¹ı¶à£¬ÓÃ·¨£ºrename <Ô­Â·¾¶> <ĞÂÃû³Æ>\n");
+
+    if (fs_core.createFile(tokens[1])) {
+        appendOutput("æ–‡ä»¶åˆ›å»ºæˆåŠŸ: " + tokens[1] + "\n");
+    }
+}
+
+void CMDManager::handleDel(const std::vector<std::string>& tokens) {
+    if (tokens.size() < 2) {
+        showError("ç”¨æ³•: del <è·¯å¾„> [/r]");
         return;
     }
-    std::string oldPath = tokens[1];
-    std::string newName = tokens[2];
-    FileManager::getInstance().handleRename(oldPath, newName);
+
+    bool recursive = (tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
+
+    std::cout << "ç¡®è®¤åˆ é™¤ " << tokens[1] << "? (y/n): ";
+    char confirm;
+    std::cin >> confirm;
+    std::cin.ignore();  // æ¸…é™¤æ¢è¡Œç¬¦
+
+    if (confirm == 'y' || confirm == 'Y') {
+        if (fs_core.deletePath(tokens[1], recursive)) {
+            appendOutput("åˆ é™¤æˆåŠŸ: " + tokens[1] + "\n");
+        }
+    }
+    else {
+        appendOutput("åˆ é™¤å·²å–æ¶ˆ\n");
+    }
 }
-void CMDManager::handleHelp(const std::vector<std::string>& tokens) {
-	this->appendContent("  create <name> [path]                - Ìí¼ÓÎÄ¼ş\n");
-    this->appendContent("  cls/clear                           - ÇåÆÁ\n");
-    this->appendContent("  md <name> [path]                    - Ìí¼ÓÄ¿Â¼\n");//Ìí¼Ó
-    this->appendContent("  del/delete <name>                   - É¾³ı\n");
-    this->appendContent("  goto/cd <name>                      - ½øÈëÄ¿Â¼\n");
-    this->appendContent("  help                                - ÏÔÊ¾°ïÖú\n");
-    this->appendContent("  quit                                - ÍË³ö³ÌĞò\n");
-	this->appendContent("  move/mov <oldPath> <newPath>            - ÒÆ¶¯ÎÄ¼ş»òÎÄ¼ş¼Ğ\n");
-}
+
 void CMDManager::handleMove(const std::vector<std::string>& tokens) {
-    if (tokens.size() <= 1) { this->appendContent("\033[31mmove È±ÉÙ²ÎÊı\033[0m\n"); return; }
-    else if (tokens.size() >= 4) { this->appendContent("\033[31mmove ¶àÓà²ÎÊı\033[0m\n"); return; }
-    FileManager::getInstance().handleMove(tokens[1], tokens[2]);
+    if (tokens.size() < 3) {
+        showError("ç”¨æ³•: move <æºè·¯å¾„> <ç›®æ ‡è·¯å¾„>");
+        return;
+    }
 
-}
-#pragma endregion
-
-#pragma region ½Ó¿Ú·â×°
-const std::string& CMDManager::getContent() const { return CONTENT; }
-void CMDManager::clearContent() { CONTENT.clear(); }
-void CMDManager::appendContent(const std::string& text) { CONTENT += text; }
-void CMDManager::showContent() { std::cout << this->getContent(); }
-#pragma endregion
-
-// ¹¤¾ßº¯ÊıÊµÏÖ
-#pragma region ¹¤¾ß
-bool CMDManager::isPureNumber(const std::string& str) {
-    return !str.empty() &&
-        std::all_of(str.begin(), str.end(),
-            [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
+    if (fs_core.movePath(tokens[1], tokens[2])) {
+        appendOutput("ç§»åŠ¨æˆåŠŸ: " + tokens[1] + " -> " + tokens[2] + "\n");
+    }
 }
 
-std::string CMDManager::toLower(const std::string& str) {
-    std::string result = str;
-    std::transform(result.begin(), result.end(), result.begin(),
-        [](unsigned char c) { return std::tolower(c); });
-    return result;
-}
-void CMDManager::nl(int t) {
-    for (int i = 0; i < t; ++i)
-        std::cout << std::endl;
-}
-#pragma endregion
+void CMDManager::handleRename(const std::vector<std::string>& tokens) {
+    if (tokens.size() < 3) {
+        showError("ç”¨æ³•: rename <æ—§åç§°> <æ–°åç§°>");
+        return;
+    }
 
+    if (fs_core.renamePath(tokens[1], tokens[2])) {
+        appendOutput("é‡å‘½åæˆåŠŸ: " + tokens[1] + " -> " + tokens[2] + "\n");
+    }
+}
 
+void CMDManager::handleCd(const std::vector<std::string>& tokens) {
+    if (tokens.size() < 2) {
+        // æ˜¾ç¤ºå½“å‰ç›®å½•
+        appendOutput("å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
+        return;
+    }
+
+    std::string target = tokens[1];
+    if (target == "..") {
+        target = fs_core.getParentPath();
+    }
+    else if (target == ".") {
+        return;  // ä¿æŒå½“å‰ç›®å½•
+    }
+
+    if (fs_core.setCurrentPath(target)) {
+        appendOutput("ç›®å½•å·²åˆ‡æ¢åˆ°: " + fs_core.getCurrentPath().string() + "\n");
+    }
+}
+
+void CMDManager::handleCls(const std::vector<std::string>&) {
+    FileSystemCore::clearScreen();
+    clearOutput();
+    appendOutput("å±å¹•å·²æ¸…ç©ºã€‚å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
+}
+
+void CMDManager::handlePwd(const std::vector<std::string>&) {
+    appendOutput("å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
+}
+
+void CMDManager::handleExists(const std::vector<std::string>& tokens) {
+    if (tokens.size() < 2) {
+        showError("ç”¨æ³•: exists <è·¯å¾„>");
+        return;
+    }
+
+    if (fs_core.pathExists(tokens[1])) {
+        appendOutput("è·¯å¾„å­˜åœ¨: " + tokens[1] + "\n");
+    }
+    else {
+        appendOutput("è·¯å¾„ä¸å­˜åœ¨: " + tokens[1] + "\n");
+    }
+}
+
+// è¾“å‡ºç®¡ç†
+void CMDManager::appendOutput(const std::string& text) {
+    output_buffer += text;
+}
+
+void CMDManager::clearOutput() {
+    output_buffer.clear();
+}
+
+const std::string& CMDManager::getOutput() const {
+    return output_buffer;
+}
+
+void CMDManager::showOutput() {
+    std::cout << output_buffer;
+    clearOutput();
+}
+
+// æ‰§è¡Œå•æ¡å‘½ä»¤
+void CMDManager::executeCommand(const std::string& command) {
+    auto tokens = parseCommand(command);
+    if (tokens.empty()) return;
+
+    std::string cmd_name = toLower(tokens[0]);
+
+    if (cmd_name == "exit" || cmd_name == "quit") {
+        appendOutput("å†è§ï¼\n");
+        showOutput();
+        exit(0);
+    }
+
+    auto it = command_map.find(cmd_name);
+    if (it != command_map.end()) {
+        it->second(tokens);
+    }
+    else {
+        showError("æœªçŸ¥å‘½ä»¤: " + cmd_name);
+        appendOutput("è¾“å…¥ 'help' æŸ¥çœ‹å¯ç”¨å‘½ä»¤ã€‚\n");
+    }
+}
+
+// ä¸»è¿è¡Œå¾ªç¯
+void CMDManager::run() {
+    std::string input;
+
+    while (true) {
+        // æ˜¾ç¤ºæç¤ºç¬¦
+        std::cout << "\n" << fs_core.getCurrentPath().string() << "> ";
+
+        // è·å–ç”¨æˆ·è¾“å…¥
+        std::getline(std::cin, input);
+
+        // æ‰§è¡Œå‘½ä»¤
+        executeCommand(input);
+
+        // æ˜¾ç¤ºè¾“å‡º
+        showOutput();
+    }
+}

@@ -1,60 +1,64 @@
-
-#pragma once
-#include <iostream> 
+ï»¿#pragma once
+#include <iostream>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <functional>
-//#include "FileManager.h"
-// Ê¹ÓÃÇ°ÏòÉùÃ÷Ìæ´úÖ±½Ó°üº¬£¬±ÜÃâÑ­»·ÒÀÀµ
-class FileManager;
+#include <sstream>
+#include <algorithm>
+#include "FileSystemCore.h"
 
 class CMDManager {
 private:
-    // Ë½ÓĞ¹¹Ôìº¯Êı
+    // å•ä¾‹æ¨¡å¼
     CMDManager();
-    // ½ûÖ¹¿½±´ºÍ¸³Öµ
     CMDManager(const CMDManager&) = delete;
     CMDManager& operator=(const CMDManager&) = delete;
 
+    FileSystemCore fs_core;  // æ–‡ä»¶ç³»ç»Ÿæ ¸å¿ƒå®ä¾‹
+    std::string output_buffer;  // è¾“å‡ºç¼“å†²åŒº
+
+    // å‘½ä»¤æ˜ å°„è¡¨
     std::unordered_map<std::string,
-        std::function<void(const std::vector<std::string>&)>> commandMap;
+        std::function<void(const std::vector<std::string>&)>> command_map;
 
-    std::string CONTENT;//Õ¹Ê¾ÄÚÈİ
-    void handleCls(const std::vector<std::string>& tokens);//ÇåÆÁ
-    void handleMkdir(const std::vector<std::string>& tokens);//Ìí¼ÓÎÄ¼ş¼Ğ
-	void HandleCreateFile(const std::vector<std::string>& tokens);//Ìí¼ÓÎÄ¼ş
-    void handleDelete(const std::vector<std::string>& tokens);//É¾³ı
-    void handleGoto(const std::vector<std::string>& tokens);//Ìø×ª
-    //void handleBack(const std::vector<std::string>& tokens);¶àÓà
-    void handleDir(const std::vector<std::string>& tokens);//!
-    void handleHelp(const std::vector<std::string>& tokens);//°ïÖú
-    void handleMove(const std::vector<std::string>& tokens);//ÒÆ¶¯
+    // åˆå§‹åŒ–å‘½ä»¤æ˜ å°„
+    void initCommands();
 
-	void handleRename(const std::vector<std::string>& tokens);//ÖØÃüÃû
-    // ¹¤¾ßº¯Êı
-    bool isPureNumber(const std::string& str);//ÅĞ¶Ï´¿Êı×Ö
-    std::string toLower(const std::string& str);  // Ìí¼ÓÕâ¸öÉùÃ÷
+    // å‘½ä»¤å¤„ç†å‡½æ•°
+    void handleHelp(const std::vector<std::string>& tokens);
+    void handleDir(const std::vector<std::string>& tokens);
+    void handleMkdir(const std::vector<std::string>& tokens);
+    void handleTouch(const std::vector<std::string>& tokens);
+    void handleDel(const std::vector<std::string>& tokens);
+    void handleMove(const std::vector<std::string>& tokens);
+    void handleRename(const std::vector<std::string>& tokens);
+    void handleCd(const std::vector<std::string>& tokens);
+    void handleCls(const std::vector<std::string>& tokens);
+    void handlePwd(const std::vector<std::string>& tokens);
+    void handleExists(const std::vector<std::string>& tokens);
 
-    void nl(int t);//»»ĞĞ
- 
+    // å·¥å…·å‡½æ•°
+    static std::vector<std::string> parseCommand(const std::string& cmd);
+    static std::string toLower(const std::string& str);
+    void showError(const std::string& msg);
+
 public:
-    // »ñÈ¡µ¥ÀıÊµÀı
+    // å•ä¾‹è®¿é—®ç‚¹
     static CMDManager& getInstance() {
         static CMDManager instance;
         return instance;
     }
 
-    // Ô­ÓĞµÄ¹«¹²·½·¨
-    void Run();
-    void RunCMD(const std::vector<std::string>& tokens);
-    void Show();
-    
-    // »ñÈ¡µ±Ç°ÄÚÈİ£¨ÓÃÓÚÏÔÊ¾£©
-    const std::string& getContent() const;
-    void clearContent();
-    void appendContent(const std::string& text);
-    void showContent();
+    // ä¸»è¿è¡Œå¾ªç¯
+    void run();
 
+    // æ‰§è¡Œå•æ¡å‘½ä»¤ï¼ˆç”¨äºæµ‹è¯•ï¼‰
+    void executeCommand(const std::string& command);
 
+    // è¾“å‡ºç®¡ç†
+    void appendOutput(const std::string& text);
+    void clearOutput();
+    const std::string& getOutput() const;
+    void showOutput();
 };
