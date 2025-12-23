@@ -1,25 +1,25 @@
-﻿#include "CMDManager.h"
+﻿#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <iostream>
+#include "CMDManager.h"
 
 int main() {
-    // 设置控制台代码页为UTF-8（支持中文路径）
-
+    // ====== 最关键的初始化 ======
 #ifdef _WIN32
-    system("chcp 65001 > nul");
+    // 1. 直接设置控制台代码页，不通过任何可能提前初始化std::cout/cerr的函数
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
 #endif
 
-    std::cout << "========================================\n";
-    std::cout << "     C++ 文件管理器 v1.0\n";
-    std::cout << "     基于 std::filesystem\n";
-    std::cout << "========================================\n\n";
-
+    // ====== 原有的业务逻辑 ======
     try {
-        // 启动命令管理器
         CMDManager::getInstance().run();
     }
     catch (const std::exception& e) {
+        // 现在使用std::cerr是安全的，因为代码页已设置
         std::cerr << "程序异常: " << e.what() << std::endl;
         return 1;
     }
-
     return 0;
 }
