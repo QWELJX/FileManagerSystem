@@ -18,16 +18,7 @@
     <ClInclude Include="CMDManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="FileManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FileNode.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="FileNodeType.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PathUtils.h">
+    <ClInclude Include="FileSystemCore.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,16 +26,7 @@
     <ClCompile Include="CMDManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="FileManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FileNode.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="FileNodeType.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PathUtils.cpp">
+    <ClCompile Include="FileSystemCore.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
