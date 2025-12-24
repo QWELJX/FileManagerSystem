@@ -13,7 +13,7 @@ void CMDManager::initCommands() {
                  {"dir", [this](auto &t) { handleDir(t); }},
                  {"ls", [this](auto &t) { handleDir(t); }}, // 别名
                  {"mkdir", [this](auto &t) { handleMkdir(t); }},
-                 {"md", [this](auto &t) { handleMkdir(t); }},//别名
+                 {"md", [this](auto &t) { handleMkdir(t); }}, // 别名
                  {"touch", [this](auto &t) { handleTouch(t); }},
                  {"del", [this](auto &t) { handleDel(t); }},
                  {"rm", [this](auto &t) { handleDel(t); }}, // 别名
@@ -77,10 +77,10 @@ std::string CMDManager::toLower(const std::string &str) {
 }
 
 // 显示错误信息
-const std::string RED = "\033[31m";
-const std::string RESET = "\033[0m";
+const std::string COLOR_RED = "\033[31m";
+const std::string COLOR_RESET = "\033[0m";
 void CMDManager::showError(const std::string &msg) {
-    appendOutput(RED+"[错误] " + msg+RESET + "\n");
+  appendOutput(COLOR_RED + "[错误] " + msg + COLOR_RESET + "\n");
 }
 
 // === 命令处理函数实现 ===
@@ -102,44 +102,39 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
-	int n = tokens.size();
-    if (n == 1) {
-        appendOutput(fs_core.listDirectory());
-    }
-	else if (n == 2) {
-        if (tokens[1] == "/s")
-            appendOutput(fs_core.listDirectory(false, true));
-        else if (tokens[1] == "/d")
-            appendOutput(fs_core.listDirectory(true, false));
-        else showError(tokens[1] + "符号未知");
-    }
-    else {
-        showError("暂不支持此功能");
-    }
-  
+  int n = tokens.size();
+  if (n == 1) {
+    appendOutput(fs_core.listDirectory());
+  } else if (n == 2) {
+    if (tokens[1] == "/s")
+      appendOutput(fs_core.listDirectory(false, true));
+    else if (tokens[1] == "/d")
+      appendOutput(fs_core.listDirectory(true, false));
+    else
+      showError(tokens[1] + "符号未知");
+  } else {
+    showError("暂不支持此功能");
+  }
 }
 
 void CMDManager::handleMkdir(const std::vector<std::string> &tokens) {
-    int n = tokens.size();
-  if (n<=1) {
+  int n = tokens.size();
+  if (n <= 1) {
     showError("用法: mkdir <目录名>");
     return;
-  }
-  else if (n == 2) {
-      if (!fs_core.createDirectory(tokens[1])) {
-		  showError("目录创建失败: " + fs_core.getLastError());
-      }
-  }
-  else if (n == 3) {
-      if (!fs_core.createDirectory(tokens[2], (tokens[1] == "/p" || tokens[1] == "-p"))) {
-		  showError("目录创建失败: " + fs_core.getLastError());
-      }
-  }
-  else {
-      showError("用法: mkdir [/p] <目录名>");
+  } else if (n == 2) {
+    if (!fs_core.createDirectory(tokens[1])) {
+      showError("目录创建失败: " + fs_core.getLastError());
+    }
+  } else if (n == 3) {
+    if (!fs_core.createDirectory(tokens[2],
+                                 (tokens[1] == "/p" || tokens[1] == "-p"))) {
+      showError("目录创建失败: " + fs_core.getLastError());
+    }
+  } else {
+    showError("用法: mkdir [/p] <目录名>");
   }
   appendOutput("目录创建成功: " + tokens[1] + "\n");
- 
 }
 
 void CMDManager::handleTouch(const std::vector<std::string> &tokens) {
@@ -157,12 +152,13 @@ void CMDManager::handleTouch(const std::vector<std::string> &tokens) {
 }
 
 void CMDManager::handleDel(const std::vector<std::string> &tokens) {
-  if (tokens.size() < 2||tokens.size()>3) {
+  if (tokens.size() < 2 || tokens.size() > 3) {
     showError("用法: del <路径> [/r]");
     return;
   }
 
-  bool recursive =(tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
+  bool recursive =
+      (tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
 
   std::cout << "确认删除 " << tokens[1] << "? (y/n): ";
   char confirm;

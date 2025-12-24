@@ -7,23 +7,59 @@ namespace fs = std::filesystem;
 
 class FileSystemCore {
 public:
+  // 构造函数：初始化文件系统核心
   FileSystemCore();
 
   // 获取/设置当前路径
+  // 返回：当前工作目录的路径对象
   fs::path getCurrentPath() const;
+  // 设置当前工作目录
+  // 参数：new_path - 要设置的新目录路径（UTF-8编码）
+  // 返回：成功返回true，失败返回false并设置错误信息
   bool setCurrentPath(const std::string &new_path);
+  // 获取当前目录的父目录
+  // 返回：父目录路径（UTF-8编码）
   std::string getParentPath() const;
+  // 获取最近的错误信息
+  // 返回：错误信息字符串
   const std::string &getLastError() const { return last_error_; }
 
   // 核心操作
-  bool createDirectory(const std::string &dir_name,bool recursive=false);
+  // 创建目录
+  // 参数：dir_name - 要创建的目录名称（UTF-8编码）
+  //       recursive - 是否递归创建父目录（默认为false）
+  // 返回：成功返回true，失败返回false并设置错误信息
+  bool createDirectory(const std::string &dir_name, bool recursive = false);
+  // 创建空文件
+  // 参数：file_name - 要创建的文件名称（UTF-8编码）
+  // 返回：成功返回true，失败返回false并设置错误信息
   bool createFile(const std::string &file_name);
-  bool deletePath(const std::string &path,bool recursive = false); // 对外统一名称，内部做安全删除
+  // 删除文件或目录
+  // 参数：path - 要删除的路径（UTF-8编码）
+  //       recursive - 是否递归删除目录内容（默认为false）
+  // 返回：成功返回true，失败返回false并设置错误信息
+  bool deletePath(const std::string &path, bool recursive = false);
+  // 移动或重命名文件/目录
+  // 参数：source - 源路径（UTF-8编码）
+  //       destination - 目标路径（UTF-8编码）
+  // 返回：成功返回true，失败返回false并设置错误信息
   bool movePath(const std::string &source, const std::string &destination);
+  // 重命名文件或目录
+  // 参数：old_name - 旧名称（UTF-8编码）
+  //       new_name - 新名称（UTF-8编码）
+  // 返回：成功返回true，失败返回false并设置错误信息
   bool renamePath(const std::string &old_name, const std::string &new_name);
 
   // 查询与列表
-  std::string listDirectory(bool detailed = false,bool recursive = false) const;
+  // 列出目录内容
+  // 参数：detailed - 是否显示详细信息（默认为false）
+  //       recursive - 是否递归列出子目录（默认为false）
+  // 返回：目录内容的字符串表示
+  std::string listDirectory(bool detailed = false,
+                            bool recursive = false) const;
+  // 检查路径是否存在
+  // 参数：path - 要检查的路径（UTF-8编码）
+  // 返回：存在返回true，不存在返回false
   bool pathExists(const std::string &path) const;
 
   // 辅助功能
@@ -37,22 +73,28 @@ private:
   static std::time_t fileTimeToTimeT(const fs::file_time_type &ftime);
   static std::string formatFileSize(uintmax_t size);
 
-  fs::path makeAbsolutePath(const std::string &relative_or_abs) const; // 基于 current_path
-  static fs::path makeAbsoluteFromCurrentDir(const std::string &relative_or_abs); // 基于系统exe当前目录
+  fs::path makeAbsolutePath(
+      const std::string &relative_or_abs) const; // 基于 current_path
+  static fs::path makeAbsoluteFromCurrentDir(
+      const std::string &relative_or_abs); // 基于系统exe当前目录
   static fs::path makeAbsolutePath(const std::string &path,
                                    const fs::path &base); // 基于指定 base
 
   bool deleteSingle(const fs::path &target);    // 非递归删除
   bool deleteRecursive(const fs::path &target); // 递归删除
 
-  static bool isCriticalSystemPath(const fs::path &path); // 关键路径检查（Windows）
+  static bool
+  isCriticalSystemPath(const fs::path &path); // 关键路径检查（Windows）
   static bool hasDeletePermission(const fs::path &path); // 权限检查（简单版）
 
   void setLastError(const std::string &msg) { last_error_ = msg; }
-  void listDirectoryImpl(const fs::path &dir, bool detailed, bool recursive,std::ostringstream &output) const;
-  //字符处理
-  static int getDisplayWidth(const std::string& str);
-  static std::string padToDisplayWidth(const std::string& str, int targetWidth, bool leftAlign = true);
-  static std::pair<int, int> parseUtf8Char(const unsigned char* str, size_t len, size_t pos);
-  static std::string LocalToUTF8(const std::string& localStr);
+  void listDirectoryImpl(const fs::path &dir, bool detailed, bool recursive,
+                         std::ostringstream &output) const;
+  // 字符处理
+  static int getDisplayWidth(const std::string &str);
+  static std::string padToDisplayWidth(const std::string &str, int targetWidth,
+                                       bool leftAlign = true);
+  static std::pair<int, int> parseUtf8Char(const unsigned char *str, size_t len,
+                                           size_t pos);
+  static std::string LocalToUTF8(const std::string &localStr);
 };

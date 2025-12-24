@@ -1,31 +1,31 @@
-//µÚËÄ¸ö
+// æ ‘èŠ‚ç‚¹ç±»
 
 #pragma once
-#include<vector>
+#include <vector>
 #include "TreeNodeType.h"
 class FileManager;
 class TreeNode {
 private:
-	//FileManager* m_Fm;//Ö¸Õë¸ºÔğ¹ÜÀíËùÓĞFileNodeµÄ½Úµã£¬//²»ÔÙÈ¥Î¬»¤Ö¸ÕëÁË
-	//½ÚµãÃû×Ö
+	//FileManager* m_Fm;//Ö¸ï¿½ë¸ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½FileNodeï¿½Ä½Úµã£¬//ï¿½ï¿½ï¿½ï¿½È¥Î¬ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
+	//ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 	std::string name;
-	//Â·¾¶
+	//Â·ï¿½ï¿½
 	std::string path;
-	//ÀàĞÍ
+	//ï¿½ï¿½ï¿½ï¿½
 	TreeNodeType type;
-	//´óĞ¡
+	//ï¿½ï¿½Ğ¡
 	size_t size;
-	//·ÅÔÚË½ÓĞÀïÃæ ±ÜÃâÔÚÀàÍâ²¿±»ËæÒâĞŞ¸Ä
+	//ï¿½ï¿½ï¿½ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ş¸ï¿½
 public:
 	
-	TreeNode(std::string name, TreeNodeType type, std::string path);//¹¹Ôìº¯Êı
-	TreeNode(std::string name, TreeNodeType type);//¹¹Ôìº¯Êı
-	TreeNode(std::string name);//¹¹Ôìº¯Êı
+	TreeNode(std::string name, TreeNodeType type, std::string path);//ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
+	TreeNode(std::string name, TreeNodeType type);//ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
+	TreeNode(std::string name);//ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
 	virtual ~TreeNode();
-	//ĞèÒª¼Ì³ĞµÄ·½·¨
-	virtual void Show() = 0;//´¿Ğéº¯Êı ÏÔÊ¾ĞÅÏ¢
+	//ï¿½ï¿½Òªï¿½Ì³ĞµÄ·ï¿½ï¿½ï¿½
+	virtual void Show() = 0;//ï¿½ï¿½ï¿½éº¯ï¿½ï¿½ ï¿½ï¿½Ê¾ï¿½ï¿½Ï¢
 
-	//»ñÈ¡·½·¨
+	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
 	std::string GetName();
 	std::string GetPath();
 	TreeNodeType GetType();
@@ -37,27 +37,27 @@ public:
 };
 class DirectoryNode : public TreeNode {
 private:
-	std::vector<TreeNode*> children;//·ÅÔÚÀàÀï ±ÜÃâÔÚÀàÍâ²¿±»ËæÒâĞŞ¸Ä
-	//¹¹Ôìº¯Êı
+	std::vector<TreeNode*> children;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ş¸ï¿½
+	//ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
 	
 	
 public:
 	DirectoryNode(std::string name, std::string path);
 	DirectoryNode(std::string name);
 	~DirectoryNode();
-	//ÖØĞ´Show·½·¨
+	//ï¿½ï¿½Ğ´Showï¿½ï¿½ï¿½ï¿½
 	void Show() override;
 
 	bool isNameAvailable(std::string fileName);
-	//ÅĞ¶ÏÃû×ÖÊÇ·ñ¿ÉÓÃ
+	//ï¿½Ğ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 	
-	//Ìí¼Ó×Ó½Úµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ó½Úµï¿½
 	void AddChild(TreeNode* child);
-	//»ñÈ¡×Ó½ÚµãÊıÁ¿
+	//ï¿½ï¿½È¡ï¿½Ó½Úµï¿½ï¿½ï¿½ï¿½ï¿½
 	size_t GetChildrenSize();
-	//»ñÈ¡×Ó½Úµã
+	//ï¿½ï¿½È¡ï¿½Ó½Úµï¿½
 	TreeNode* GetOneChild(size_t index);
-	//É¾³ı×Ó½Úµã
+	//É¾ï¿½ï¿½ï¿½Ó½Úµï¿½
 	bool RemoveChild(const std::string& childName);
 	bool RemoveChild(TreeNode* p);
 	const std::vector<TreeNode*>& GetChild() const;
