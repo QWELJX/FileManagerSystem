@@ -18,7 +18,7 @@ private:
   CMDManager &operator=(const CMDManager &) = delete;
 
   FileSystemCore fs_core;    // 文件系统核心实例
-  std::string output_buffer; // 输出缓冲区
+  std::string output_buffer; // 输出缓冲区  //@@@
 
   // 命令映射表
   std::unordered_map<std::string,
@@ -29,17 +29,17 @@ private:
   void initCommands();
 
   // 命令处理函数
-  void handleHelp(const std::vector<std::string> &tokens);
-  void handleDir(const std::vector<std::string> &tokens);
-  void handleMkdir(const std::vector<std::string> &tokens);
-  void handleTouch(const std::vector<std::string> &tokens);
+  void handleHelp(const std::vector<std::string> &tokens);//张淦//帮助
+  void handleDir(const std::vector<std::string> &tokens);//连家兴
+  void handleMkdir(const std::vector<std::string>& tokens);//张淦//创建目录
+  void handleTouch(const std::vector<std::string> &tokens); 
   void handleDel(const std::vector<std::string> &tokens);
   void handleMove(const std::vector<std::string> &tokens);
   void handleRename(const std::vector<std::string> &tokens);
   void handleCd(const std::vector<std::string> &tokens);
-  void handleCls(const std::vector<std::string> &tokens);
-  void handlePwd(const std::vector<std::string> &tokens);
-  void handleExists(const std::vector<std::string> &tokens);
+  void handleCls(const std::vector<std::string>& tokens);//张淦//清屏
+  void handlePwd(const std::vector<std::string>& tokens);//张淦//显示当前路径
+  void handleExists(const std::vector<std::string> &tokens);//张淦//检查路径是否存在
 
   // 工具函数
   static std::vector<std::string> parseCommand(const std::string &cmd);

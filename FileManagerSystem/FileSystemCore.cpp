@@ -324,6 +324,7 @@ bool FileSystemCore::hasDeletePermission(const fs::path& path) {
 // 创建目录
 bool FileSystemCore::createDirectory(const std::string &dir_name,bool recursive) {
     try {
+        //转换为绝对路径（统一路径处理，避免相对路径歧义）
         fs::path full_path = makeAbsolutePath(dir_name);
 
         // 1. 检查路径是否已存在
@@ -336,7 +337,7 @@ bool FileSystemCore::createDirectory(const std::string &dir_name,bool recursive)
 
         // 2. 非递归模式需要检查父目录
         if (!recursive && !fs::exists(full_path.parent_path())) {
-            setLastError("父目录不存在，请使用递归模式: " + full_path.parent_path().string());
+            setLastError("父目录:"+ full_path.parent_path().string()+"不存在，请使用递归模式");
             return false;
         }
 
@@ -345,6 +346,7 @@ bool FileSystemCore::createDirectory(const std::string &dir_name,bool recursive)
         bool success = recursive ?
             fs::create_directories(full_path, ec) :
             fs::create_directory(full_path, ec);
+        // 注：fs::create_directories会创建所有不存在的父目录；fs::create_directory仅创建最后一级
 
         // 4. 统一处理结果
         if (success) {
@@ -480,8 +482,8 @@ bool FileSystemCore::deleteSingle(const fs::path &target) {
 bool FileSystemCore::movePath(const std::string &source, const std::string &destination) {
   try {
     // 构建源路径和目标路径（支持相对与绝对）
-    fs::path abs_src = makeAbsolutePath(source);
-    fs::path abs_dst = makeAbsolutePath(destination);
+	fs::path abs_src = makeAbsolutePath(source);//获得源文件的绝对路径
+	fs::path abs_dst = makeAbsolutePath(destination);//获得目标文件的绝对路径
 
     // 检查源路径是否存在
     if (!fs::exists(abs_src)) {
@@ -491,16 +493,16 @@ bool FileSystemCore::movePath(const std::string &source, const std::string &dest
 
     // 如果目标是已存在的目录，则移动文件到此目录内
     if (fs::exists(abs_dst) && fs::is_directory(abs_dst)) {
-      abs_dst = abs_dst / abs_src.filename();
+		abs_dst = abs_dst / abs_src.filename();//拼接目标路径
     }
 
     // 执行移动/重命名
-    fs::rename(abs_src, abs_dst);
-    last_error_.clear();
+    fs::rename(abs_src, abs_dst);//fs::rename(abs_src, abs_dst) 就是 “把abs_src这个文件 / 文件夹，挪到abs_dst这个位置（或改名为abs_dst）”
+	last_error_.clear();//清除错误信息
     return true;
 
   } catch (const fs::filesystem_error &e) {
-    setLastError(e.what());
+    setLastError(e.what());//记录错误信息
     return false;
   }
 }

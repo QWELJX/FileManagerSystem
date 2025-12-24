@@ -1,33 +1,33 @@
-#include "CMDManager.h"
+ï»¿#include "CMDManager.h"
 #include <limits>
 
-// ¹¹Ôìº¯Êı£º³õÊ¼»¯ÃüÁîÓ³Éä
+// æ„é€ å‡½æ•°ï¼šåˆå§‹åŒ–å‘½ä»¤æ˜ å°„
 CMDManager::CMDManager() {
     initCommands();
-    appendOutput("ÎÄ¼ş¹ÜÀíÆ÷ÒÑÆô¶¯¡£ÊäÈë 'help' ²é¿´ÃüÁîÁĞ±í¡£\n");
-    appendOutput("µ±Ç°³õÊ¼Ä¿Â¼: " + fs_core.getCurrentPath().string() + "\n");
+    appendOutput("æ–‡ä»¶ç®¡ç†å™¨å·²å¯åŠ¨ã€‚è¾“å…¥ 'help' æŸ¥çœ‹å‘½ä»¤åˆ—è¡¨ã€‚\n");
+    appendOutput("å½“å‰åˆå§‹ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
 }
 
 void CMDManager::initCommands() {
     command_map = { {"help", [this](auto& t) { handleHelp(t); }},
                    {"dir", [this](auto& t) { handleDir(t); }},
-                   {"ls", [this](auto& t) { handleDir(t); }}, // ±ğÃû
+                   {"ls", [this](auto& t) { handleDir(t); }}, // åˆ«å
                    {"mkdir", [this](auto& t) { handleMkdir(t); }},
-                   {"md", [this](auto& t) { handleMkdir(t); }},//±ğÃû
+                   {"md", [this](auto& t) { handleMkdir(t); }},//åˆ«å
                    {"touch", [this](auto& t) { handleTouch(t); }},
                    {"del", [this](auto& t) { handleDel(t); }},
-                   {"rm", [this](auto& t) { handleDel(t); }}, // ±ğÃû
+                   {"rm", [this](auto& t) { handleDel(t); }}, // åˆ«å
                    {"move", [this](auto& t) { handleMove(t); }},
-                   {"mv", [this](auto& t) { handleMove(t); }}, // ±ğÃû
+                   {"mv", [this](auto& t) { handleMove(t); }}, // åˆ«å
                    {"rename", [this](auto& t) { handleRename(t); }},
                    {"cd", [this](auto& t) { handleCd(t); }},
                    {"cls", [this](auto& t) { handleCls(t); }},
-                   {"clear", [this](auto& t) { handleCls(t); }}, // ±ğÃû
+                   {"clear", [this](auto& t) { handleCls(t); }}, // åˆ«å
                    {"pwd", [this](auto& t) { handlePwd(t); }},
                    {"exists", [this](auto& t) { handleExists(t); }} };
 }
 
-// ½âÎöÃüÁîÎªÁîÅÆ
+// è§£æå‘½ä»¤ä¸ºä»¤ç‰Œ
 std::vector<std::string> CMDManager::parseCommand(const std::string& cmd) {
     std::vector<std::string> tokens;
     std::istringstream iss(cmd);
@@ -35,23 +35,23 @@ std::vector<std::string> CMDManager::parseCommand(const std::string& cmd) {
     const std::size_t MAX_TOKEN_LEN = 4096;
 
     while (iss >> token) {
-        // ´¦Àí´øÒıºÅµÄ²ÎÊı
+        // å¤„ç†å¸¦å¼•å·çš„å‚æ•°
         if (!token.empty() && token.front() == '"') {
             std::string quoted;
             quoted = token.substr(1);
 
             bool closed = false;
 
-            // µ±Ç° token Í¬Ê±°üº¬Ê×Î²ÒıºÅµÄÇé¿ö
+            // å½“å‰ token åŒæ—¶åŒ…å«é¦–å°¾å¼•å·çš„æƒ…å†µ
             if (!quoted.empty() && quoted.back() == '"') {
-                quoted.pop_back(); // ÒÆ³ı½áÎ²ÒıºÅ
+                quoted.pop_back(); // ç§»é™¤ç»“å°¾å¼•å·
                 closed = true;
             }
             else {
                 while (iss >> token) {
                     quoted += " " + token;
                     if (!token.empty() && token.back() == '"') {
-                        quoted.pop_back(); // ÒÆ³ı½áÎ²ÒıºÅ
+                        quoted.pop_back(); // ç§»é™¤ç»“å°¾å¼•å·
                         closed = true;
                         break;
                     }
@@ -61,7 +61,7 @@ std::vector<std::string> CMDManager::parseCommand(const std::string& cmd) {
                 }
             }
 
-            // Èç¹ûÃ»ÓĞÕı³£±ÕºÏ£¬ÕâÀïÈÔÈ»°ÑÒÑÓĞÄÚÈİ×÷ÎªÒ»¸öÕûÌå²ÎÊı½»¸øºóĞø´¦Àí
+            // å¦‚æœæ²¡æœ‰æ­£å¸¸é—­åˆï¼Œè¿™é‡Œä»ç„¶æŠŠå·²æœ‰å†…å®¹ä½œä¸ºä¸€ä¸ªæ•´ä½“å‚æ•°äº¤ç»™åç»­å¤„ç†
             tokens.push_back(quoted);
         }
         else {
@@ -71,36 +71,36 @@ std::vector<std::string> CMDManager::parseCommand(const std::string& cmd) {
     return tokens;
 }
 
-// ×ª»»ÎªĞ¡Ğ´
+// è½¬æ¢ä¸ºå°å†™
 std::string CMDManager::toLower(const std::string& str) {
     std::string lower = str;
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
     return lower;
 }
 
-// ÏÔÊ¾´íÎóĞÅÏ¢
+// æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 const std::string RED = "\033[31m";
 const std::string RESET = "\033[0m";
 void CMDManager::showError(const std::string& msg) {
-    appendOutput(RED + "[´íÎó] " + msg + RESET + "\n");
+    appendOutput(RED + "[é”™è¯¯] " + msg + RESET + "\n");
 }
 
-// === ÃüÁî´¦Àíº¯ÊıÊµÏÖ ===
+// === å‘½ä»¤å¤„ç†å‡½æ•°å®ç° ===
 
 void CMDManager::handleHelp(const std::vector<std::string>&) {
-    appendOutput("¿ÉÓÃÃüÁî:\n");
-    appendOutput("  help              - ÏÔÊ¾´Ë°ïÖúĞÅÏ¢\n");
-    appendOutput("  dir, ls           - ÁĞ³öµ±Ç°Ä¿Â¼ÄÚÈİ\n");
-    appendOutput("  mkdir <Ä¿Â¼Ãû>    - ´´½¨ĞÂÄ¿Â¼\n");
-    appendOutput("  touch <ÎÄ¼şÃû>    - ´´½¨ĞÂÎÄ¼ş\n");
-    appendOutput("  del <Â·¾¶>        - É¾³ıÎÄ¼ş»òÄ¿Â¼\n");
-    appendOutput("  move <Ô´> <Ä¿±ê>  - ÒÆ¶¯/¸´ÖÆÎÄ¼ş»òÄ¿Â¼\n");
-    appendOutput("  rename <¾É> <ĞÂ>  - ÖØÃüÃûÎÄ¼ş»òÄ¿Â¼\n");
-    appendOutput("  cd <Â·¾¶>         - ÇĞ»»µ±Ç°Ä¿Â¼\n");
-    appendOutput("  cls, clear        - ÇåÆÁ\n");
-    appendOutput("  pwd               - ÏÔÊ¾µ±Ç°Ä¿Â¼\n");
-    appendOutput("  exists <Â·¾¶>     - ¼ì²éÂ·¾¶ÊÇ·ñ´æÔÚ\n");
-    appendOutput("  exit, quit        - ÍË³ö³ÌĞò\n");
+    appendOutput("å¯ç”¨å‘½ä»¤:\n");
+    appendOutput("  help              - æ˜¾ç¤ºæ­¤å¸®åŠ©ä¿¡æ¯\n");
+    appendOutput("  dir, ls           - åˆ—å‡ºå½“å‰ç›®å½•å†…å®¹\n");
+    appendOutput("  mkdir <ç›®å½•å>    - åˆ›å»ºæ–°ç›®å½•\n");
+    appendOutput("  touch <æ–‡ä»¶å>    - åˆ›å»ºæ–°æ–‡ä»¶\n");
+    appendOutput("  del <è·¯å¾„>        - åˆ é™¤æ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  move <æº> <ç›®æ ‡>  - ç§»åŠ¨/å¤åˆ¶æ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  rename <æ—§> <æ–°>  - é‡å‘½åæ–‡ä»¶æˆ–ç›®å½•\n");
+    appendOutput("  cd <è·¯å¾„>         - åˆ‡æ¢å½“å‰ç›®å½•\n");
+    appendOutput("  cls, clear        - æ¸…å±\n");
+    appendOutput("  pwd               - æ˜¾ç¤ºå½“å‰ç›®å½•\n");
+    appendOutput("  exists <è·¯å¾„>     - æ£€æŸ¥è·¯å¾„æ˜¯å¦å­˜åœ¨\n");
+    appendOutput("  exit, quit        - é€€å‡ºç¨‹åº\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string>& tokens) {
@@ -113,10 +113,10 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
             appendOutput(fs_core.listDirectory(false, true));
         else if (tokens[1] == "/d")
             appendOutput(fs_core.listDirectory(true, false));
-        else showError(tokens[1] + "·ûºÅÎ´Öª");
+        else showError(tokens[1] + "ç¬¦å·æœªçŸ¥");
     }
     else {
-        showError("Ôİ²»Ö§³Ö´Ë¹¦ÄÜ");
+        showError("æš‚ä¸æ”¯æŒæ­¤åŠŸèƒ½");
     }
 
 }
@@ -124,98 +124,98 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
     int n = tokens.size();
     if (n <= 1) {
-        showError("ÓÃ·¨: mkdir <Ä¿Â¼Ãû>");
+        showError("ç”¨æ³•: mkdir <ç›®å½•å>");
         return;
     }
     else if (n == 2) {
         if (!fs_core.createDirectory(tokens[1])) {
-            showError("Ä¿Â¼´´½¨Ê§°Ü: " + fs_core.getLastError());
+            showError("ç›®å½•åˆ›å»ºå¤±è´¥: " + fs_core.getLastError());
         }
     }
     else if (n == 3) {
         if (!fs_core.createDirectory(tokens[2], (tokens[1] == "/p" || tokens[1] == "-p"))) {
-            showError("Ä¿Â¼´´½¨Ê§°Ü: " + fs_core.getLastError());
+            showError("ç›®å½•åˆ›å»ºå¤±è´¥: " + fs_core.getLastError());
         }
     }
     else {
-        showError("ÓÃ·¨: mkdir [/p] <Ä¿Â¼Ãû>");
+        showError("ç”¨æ³•: mkdir [/p] <ç›®å½•å>");
     }
-    appendOutput("Ä¿Â¼´´½¨³É¹¦: " + tokens[1] + "\n");
+    appendOutput("ç›®å½•åˆ›å»ºæˆåŠŸ: " + tokens[1] + "\n");
 
 }
 
 void CMDManager::handleTouch(const std::vector<std::string>& tokens) {
     if (tokens.size() != 2) {
-        showError("ÓÃ·¨: touch <ÎÄ¼şÃû>");
+        showError("ç”¨æ³•: touch <æ–‡ä»¶å>");
         return;
     }
 
     if (!fs_core.createFile(tokens[1])) {
-        showError("ÎÄ¼ş´´½¨Ê§°Ü: " + fs_core.getLastError());
+        showError("æ–‡ä»¶åˆ›å»ºå¤±è´¥: " + fs_core.getLastError());
         return;
     }
 
-    appendOutput("ÎÄ¼ş´´½¨³É¹¦: " + tokens[1] + "\n");
+    appendOutput("æ–‡ä»¶åˆ›å»ºæˆåŠŸ: " + tokens[1] + "\n");
 }
 
 void CMDManager::handleDel(const std::vector<std::string>& tokens) {
     if (tokens.size() < 2 || tokens.size() > 3) {
-        showError("ÓÃ·¨: del <Â·¾¶> [/r]");
+        showError("ç”¨æ³•: del <è·¯å¾„> [/r]");
         return;
     }
 
     bool recursive = (tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
 
-    std::cout << "È·ÈÏÉ¾³ı " << tokens[1] << "? (y/n): ";
+    std::cout << "ç¡®è®¤åˆ é™¤ " << tokens[1] << "? (y/n): ";
     char confirm;
     std::cin >> confirm;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
-        '\n'); // Çå³ı±¾ĞĞÊ£ÓàÊäÈë
+        '\n'); // æ¸…é™¤æœ¬è¡Œå‰©ä½™è¾“å…¥
 
     if (confirm != 'y' && confirm != 'Y') {
-        appendOutput("É¾³ıÒÑÈ¡Ïû\n");
+        appendOutput("åˆ é™¤å·²å–æ¶ˆ\n");
         return;
     }
 
     if (!fs_core.deletePath(tokens[1], recursive)) {
-        showError("É¾³ıÊ§°Ü: " + fs_core.getLastError());
+        showError("åˆ é™¤å¤±è´¥: " + fs_core.getLastError());
         return;
     }
 
-    appendOutput("É¾³ı³É¹¦: " + tokens[1] + "\n");
+    appendOutput("åˆ é™¤æˆåŠŸ: " + tokens[1] + "\n");
 }
 
 void CMDManager::handleMove(const std::vector<std::string>& tokens) {
     if (tokens.size() != 3) {
-        showError("ÓÃ·¨: move <Ô´Â·¾¶> <Ä¿±êÂ·¾¶>");
+        showError("ç”¨æ³•: move <æºè·¯å¾„> <ç›®æ ‡è·¯å¾„>");
         return;
     }
 
     if (!fs_core.movePath(tokens[1], tokens[2])) {
-        showError("ÒÆ¶¯Ê§°Ü: " + fs_core.getLastError());
+        showError("ç§»åŠ¨å¤±è´¥: " + fs_core.getLastError());
         return;
     }
 
-    appendOutput("ÒÆ¶¯³É¹¦: " + tokens[1] + " -> " + tokens[2] + "\n");
+    appendOutput("ç§»åŠ¨æˆåŠŸ: " + tokens[1] + " -> " + tokens[2] + "\n");
 }
 
 void CMDManager::handleRename(const std::vector<std::string>& tokens) {
     if (tokens.size() < 3) {
-        showError("ÓÃ·¨: rename <¾ÉÃû³Æ> <ĞÂÃû³Æ>");
+        showError("ç”¨æ³•: rename <æ—§åç§°> <æ–°åç§°>");
         return;
     }
 
     if (!fs_core.renamePath(tokens[1], tokens[2])) {
-        showError("ÖØÃüÃûÊ§°Ü: " + fs_core.getLastError());
+        showError("é‡å‘½åå¤±è´¥: " + fs_core.getLastError());
         return;
     }
 
-    appendOutput("ÖØÃüÃû³É¹¦: " + tokens[1] + " -> " + tokens[2] + "\n");
+    appendOutput("é‡å‘½åæˆåŠŸ: " + tokens[1] + " -> " + tokens[2] + "\n");
 }
 
 void CMDManager::handleCd(const std::vector<std::string>& tokens) {
     if (tokens.size() < 2) {
-        // Ä£·Âcmd ²»ÏìÓ¦
+        // æ¨¡ä»¿cmd ä¸å“åº”
         return;
     }
 
@@ -224,47 +224,47 @@ void CMDManager::handleCd(const std::vector<std::string>& tokens) {
         target = fs_core.getParentPath();
     }
     else if (target == ".") {
-        return; // ±£³Öµ±Ç°Ä¿Â¼
+        return; // ä¿æŒå½“å‰ç›®å½•
     }
 
     if (!fs_core.setCurrentPath(target)) {
-        showError("ÇĞ»»Ä¿Â¼Ê§°Ü: " + fs_core.getLastError());
+        showError("åˆ‡æ¢ç›®å½•å¤±è´¥: " + fs_core.getLastError());
         return;
     }
-    appendOutput("Ä¿Â¼ÒÑÇĞ»»µ½: " + fs_core.getCurrentPath().string() + "\n");
+    appendOutput("ç›®å½•å·²åˆ‡æ¢åˆ°: " + fs_core.getCurrentPath().string() + "\n");
 }
 
 void CMDManager::handleCls(const std::vector<std::string>&) {
     FileSystemCore::clearScreen();
     clearOutput();
-    appendOutput("ÆÁÄ»ÒÑÇå¿Õ¡£µ±Ç°Ä¿Â¼: " + fs_core.getCurrentPath().string() +
+    appendOutput("å±å¹•å·²æ¸…ç©ºã€‚å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() +
         "\n");
 }
 
 void CMDManager::handlePwd(const std::vector<std::string>&) {
-    appendOutput("µ±Ç°Ä¿Â¼: " + fs_core.getCurrentPath().string() + "\n");
+    appendOutput("å½“å‰ç›®å½•: " + fs_core.getCurrentPath().string() + "\n");
 }
 
 void CMDManager::handleExists(const std::vector<std::string>& tokens) {
     if (tokens.size() < 2) {
-        showError("ÓÃ·¨: exists <Â·¾¶>");
+        showError("ç”¨æ³•: exists <è·¯å¾„>");
         return;
     }
 
     if (fs_core.pathExists(tokens[1])) {
-        appendOutput("Â·¾¶´æÔÚ: " + tokens[1] + "\n");
+        appendOutput("è·¯å¾„å­˜åœ¨: " + tokens[1] + "\n");
     }
     else {
-        appendOutput("Â·¾¶²»´æÔÚ: " + tokens[1] + "\n");
+        appendOutput("è·¯å¾„ä¸å­˜åœ¨: " + tokens[1] + "\n");
     }
 }
 
-// Êä³ö¹ÜÀí
+// è¾“å‡ºç®¡ç†
 void CMDManager::Show() {
     std::cout << "==============================================================="
         "=================\n";
-    std::cout << "     C++ ÎÄ¼ş¹ÜÀíÆ÷ \n";
-    std::cout << "     »ùÓÚ std::filesystem\n";
+    std::cout << "     C++ æ–‡ä»¶ç®¡ç†å™¨ \n";
+    std::cout << "     åŸºäº std::filesystem\n";
     std::cout << "==============================================================="
         "=================\n";
     std::cout << fs_core.listDirectory(true, false);
@@ -272,7 +272,7 @@ void CMDManager::Show() {
         "=================\n";
     showOutput();
 }
-void CMDManager::appendOutput(const std::string& text) {
+void CMDManager::appendOutput(const std::string& text) {//@@@
     output_buffer += text;
 }
 
@@ -280,9 +280,9 @@ void CMDManager::clearOutput() { output_buffer.clear(); }
 
 const std::string& CMDManager::getOutput() const { return output_buffer; }
 
-void CMDManager::showOutput() { std::cout << output_buffer; }
+void CMDManager::showOutput() { std::cout << output_buffer; }   //@@@
 
-// Ö´ĞĞµ¥ÌõÃüÁî
+// æ‰§è¡Œå•æ¡å‘½ä»¤
 void CMDManager::executeCommand(const std::string& command) {
     auto tokens = parseCommand(command);
     if (tokens.empty())
@@ -291,7 +291,7 @@ void CMDManager::executeCommand(const std::string& command) {
     std::string cmd_name = toLower(tokens[0]);
 
     if (cmd_name == "exit" || cmd_name == "quit") {
-        appendOutput("ÔÙ¼û£¡\n");
+        appendOutput("å†è§ï¼\n");
         showOutput();
         exit(0);
     }
@@ -301,26 +301,26 @@ void CMDManager::executeCommand(const std::string& command) {
         it->second(tokens);
     }
     else {
-        showError("Î´ÖªÃüÁî: " + cmd_name);
-        appendOutput("ÊäÈë 'help' ²é¿´¿ÉÓÃÃüÁî¡£\n");
+        showError("æœªçŸ¥å‘½ä»¤: " + cmd_name);
+        appendOutput("è¾“å…¥ 'help' æŸ¥çœ‹å¯ç”¨å‘½ä»¤ã€‚\n");
     }
 }
 
-// Ö÷ÔËĞĞÑ­»·
+// ä¸»è¿è¡Œå¾ªç¯
 void CMDManager::run() {
     std::string input;
 
     while (true) {
-        // ÏÔÊ¾ÌáÊ¾·û
+        // æ˜¾ç¤ºæç¤ºç¬¦
 
         appendOutput("\n" + fs_core.getCurrentPath().string() + "> ");
         Show();
 
-        // »ñÈ¡ÓÃ»§ÊäÈë
+        // è·å–ç”¨æˆ·è¾“å…¥
         std::getline(std::cin, input);
-        // ´¦ÀíÁ÷
+        // å¤„ç†æµ
         appendOutput(input + "\n");
-        // Ö´ĞĞÃüÁî
+        // æ‰§è¡Œå‘½ä»¤
 
         executeCommand(input);
 
