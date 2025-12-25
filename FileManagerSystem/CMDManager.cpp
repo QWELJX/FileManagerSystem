@@ -87,18 +87,18 @@ void CMDManager::showError(const std::string &msg) {
 
 void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("可用命令:\n");
-  appendOutput("  help              - 显示此帮助信息\n");
-  appendOutput("  dir, ls           - 列出当前目录内容\n");
-  appendOutput("  mkdir <目录名>    - 创建新目录\n");
-  appendOutput("  touch <文件名>    - 创建新文件\n");
-  appendOutput("  del <路径>        - 删除文件或目录\n");
-  appendOutput("  move <源> <目标>  - 移动/复制文件或目录\n");
-  appendOutput("  rename <旧> <新>  - 重命名文件或目录\n");
-  appendOutput("  cd <路径>         - 切换当前目录\n");
-  appendOutput("  cls, clear        - 清屏\n");
-  appendOutput("  pwd               - 显示当前目录\n");
-  appendOutput("  exists <路径>     - 检查路径是否存在\n");
-  appendOutput("  exit, quit        - 退出程序\n");
+  appendOutput("  help                   - 显示此帮助信息\n");
+  appendOutput("  dir, ls [/r/d]         - 列出当前目录内容\n");
+  appendOutput("  mkdir [/r] <目录名>    - 创建新目录\n");
+  appendOutput("  touch <文件名>         - 创建新文件\n");
+  appendOutput("  del <路径>             - 删除文件或目录\n");
+  appendOutput("  move <源> <目标>       - 移动/复制文件或目录\n");
+  appendOutput("  rename <旧> <新>       - 重命名文件或目录\n");
+  appendOutput("  cd <路径>              - 切换当前目录\n");
+  appendOutput("  cls, clear             - 清屏\n");
+  appendOutput("  pwd                    - 显示当前目录\n");
+  appendOutput("  exists <路径>          - 检查路径是否存在\n");
+  appendOutput("  exit, quit             - 退出程序\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
@@ -106,9 +106,9 @@ void CMDManager::handleDir(const std::vector<std::string> &tokens) {
   if (n == 1) {
     appendOutput(fs_core.listDirectory());
   } else if (n == 2) {
-    if (tokens[1] == "/s")
+    if (tokens[1] == "/s"||tokens[1]=="-s")
       appendOutput(fs_core.listDirectory(false, true));
-    else if (tokens[1] == "/d")
+    else if (tokens[1] == "/d" || tokens[1] == "-d")
       appendOutput(fs_core.listDirectory(true, false));
     else
       showError(tokens[1] + "符号未知");
@@ -120,7 +120,7 @@ void CMDManager::handleDir(const std::vector<std::string> &tokens) {
 void CMDManager::handleMkdir(const std::vector<std::string> &tokens) {
   int n = tokens.size();
   if (n <= 1) {
-    showError("用法: mkdir <目录名>");
+    showError("用法: mkdir [/r] <目录名>");
     return;
   } else if (n == 2) {
     if (!fs_core.createDirectory(tokens[1])) {

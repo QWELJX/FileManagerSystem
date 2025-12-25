@@ -635,7 +635,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
           bool is_file = fs::is_regular_file(status);
           // 获取文件名
           const std::string name =
-              LocalToUTF8(entry.path().filename().string());
+              EncodingUtils::WideToUTF8(entry.path().filename().wstring());
           // 计算类型名称
           std::string type_name;
           if (is_dir) {
@@ -693,7 +693,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
 
         } catch (const fs::filesystem_error &) {
           output << " [无法访问] "
-                 << LocalToUTF8(entry.path().filename().string()) << "\n";
+                 << EncodingUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
         }
       }
       int file_count = std::count_if(
@@ -714,7 +714,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
             std::string indent(depth * 2, '-');
 
             // 获取文件名
-            std::string name = LocalToUTF8(it->path().filename().string());
+            std::string name =EncodingUtils::WideToUTF8(it->path().filename().wstring());
 
             // 如果是目录，添加标记
             if (it->is_directory()) {
@@ -760,39 +760,4 @@ void FileSystemCore::clearScreen() { system("cls"); }
 // 获取父目录路径
 std::string FileSystemCore::getParentPath() const {
   return current_path.parent_path().string();
-}
-// 转换为 UTF-8 字符串
-std::string FileSystemCore::LocalToUTF8(const std::string &str) {
-#ifdef _WIN32
-  // 注意：现在我们的系统中，内部字符串应该已经是 UTF-8 格式
-  // 这个函数主要用于处理从外部获取的本地编码字符串
-  // 或者在无法直接使用宽字符串的情况下使用
-
-  // 先尝试直接作为 UTF-8 处理
-  std::wstring testWide = EncodingUtils::UTF8ToWide(str);
-  if (!testWide.empty()) {
-    // 如果转换成功，说明输入已经是 UTF-8，直接返回
-    return str;
-  }
-
-  // 转换失败，尝试作为本地编码处理
-  int wideLen = MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, nullptr, 0);
-  if (wideLen == 0) {
-    return str; // 转换失败，返回原字符串
-  }
-
-  std::wstring wideStr(wideLen, 0);
-  MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, &wideStr[0], wideLen);
-
-  // 去除末尾的 null 终止符
-  if (!wideStr.empty() && wideStr.back() == L'\0') {
-    wideStr.pop_back();
-  }
-
-  // 转换为 UTF-8
-  return EncodingUtils::WideToUTF8(wideStr);
-#else
-  // Linux/macOS 通常原生使用 UTF-8，直接返回
-  return str;
-#endif
 }

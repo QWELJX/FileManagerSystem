@@ -96,5 +96,5 @@ private:
                                        bool leftAlign = true);
   static std::pair<int, int> parseUtf8Char(const unsigned char *str, size_t len,
                                            size_t pos);
-  static std::string LocalToUTF8(const std::string &localStr);
+ 
 };
