@@ -107,18 +107,14 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("  exists <路径>          - 检查路径是否存在\n");
   appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
   appendOutput("  mark del <标记>        - 删除快捷标记\n");
-  appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
-  appendOutput("  mark del <标记>        - 删除快捷标记\n");
   appendOutput("  mark list              - 列出所有快捷标记\n");
   appendOutput("  run <exe文件>          - 运行exe文件\n");
   appendOutput("  open <txt文件>         - 用记事本打开txt文件\n");
   appendOutput("  exit, quit             - 退出程序\n");
-  appendOutput("\n");
   appendOutput("快捷标记用法:\n");
   appendOutput("  mark work D:\\Code\\Project    - 设置 'work' 标记\n");
   appendOutput("  cd ${work}                    - 使用快捷标记跳转目录\n");
-  appendOutput(
-      "  cd ${work}/src                - 复合路径：跳转到标记目录的子目录\n");
+  appendOutput("  cd ${work}/src                - 复合路径：跳转到标记目录的子目录\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {

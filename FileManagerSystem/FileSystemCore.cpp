@@ -1,4 +1,4 @@
-// 标准库头文件
+﻿// 标准库头文件
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
