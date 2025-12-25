@@ -63,8 +63,16 @@ std::string WideToUTF8(const std::wstring &wideStr) {
 
   return utf8Str;
 }
-} // namespace EncodingUtils
 
+// 公共的WideToUTF8函数
+
+} // namespace EncodingUtils
+std::string FileSystemCore::WideToUTF8(const std::wstring& wideStr) {
+    return EncodingUtils::WideToUTF8(wideStr);
+}
+std::wstring FileSystemCore::UTF8ToWide(const std::string& utf8Str) {
+	return EncodingUtils::UTF8ToWide(utf8Str);
+}
 // 扩展名到友好类型名的简单映射表
 static const std::unordered_map<std::string, std::string> EXT_TYPE_MAP = {
     {"txt", "文本文件"},
@@ -521,7 +529,7 @@ bool FileSystemCore::deleteSingle(const fs::path &target) {
 
     // 执行删除
     bool success = fs::remove(target, ec);
-
+    
     if (ec) {
       setLastError("删除失败: " + EncodingUtils::WideToUTF8(target.wstring()) +
                    " - " + ec.message());

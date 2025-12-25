@@ -106,7 +106,7 @@ void CMDManager::handleDir(const std::vector<std::string> &tokens) {
   if (n == 1) {
     appendOutput(fs_core.listDirectory());
   } else if (n == 2) {
-    if (tokens[1] == "/r"||tokens[1]=="-r")
+    if (tokens[1] == "/r" || tokens[1] == "-r")
       appendOutput(fs_core.listDirectory(false, true));
     else if (tokens[1] == "/d" || tokens[1] == "-d")
       appendOutput(fs_core.listDirectory(true, false));
@@ -224,18 +224,18 @@ void CMDManager::handleCd(const std::vector<std::string> &tokens) {
     showError("切换目录失败: " + fs_core.getLastError());
     return;
   }
-  appendOutput("目录已切换到: " + fs_core.getCurrentPath().string() + "\n");
+  appendOutput("目录已切换到: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "\n");
 }
 
 void CMDManager::handleCls(const std::vector<std::string> &) {
   FileSystemCore::clearScreen();
   clearOutput();
-  appendOutput("屏幕已清空。当前目录: " + fs_core.getCurrentPath().string() +
+  appendOutput("屏幕已清空。当前目录: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
                "\n");
 }
 
 void CMDManager::handlePwd(const std::vector<std::string> &) {
-  appendOutput("当前目录: " + fs_core.getCurrentPath().string() + "\n");
+  appendOutput("当前目录: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "\n");
 }
 
 void CMDManager::handleExists(const std::vector<std::string> &tokens) {
@@ -304,7 +304,7 @@ void CMDManager::run() {
   while (true) {
     // 显示提示符
 
-    appendOutput("\n" + fs_core.getCurrentPath().string() + "> ");
+    appendOutput("\n" + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "> ");
     Show();
 
     // 获取用户输入

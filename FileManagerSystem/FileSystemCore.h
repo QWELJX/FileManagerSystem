@@ -65,6 +65,10 @@ public:
   // 辅助功能
   static void clearScreen();
 
+  // 编码转换工具
+  // 宽字符串 (UTF-16) 转 UTF-8 字符串
+  static std::string WideToUTF8(const std::wstring &wideStr);
+  static std::wstring UTF8ToWide(const std::string& utf8Str);
 private:
   fs::path current_path;     // 当前工作目录
   std::string last_error_{}; // 最近一次错误信息
@@ -96,5 +100,4 @@ private:
                                        bool leftAlign = true);
   static std::pair<int, int> parseUtf8Char(const unsigned char *str, size_t len,
                                            size_t pos);
- 
 };
