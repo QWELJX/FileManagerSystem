@@ -3,7 +3,6 @@
 #endif
 #include <iostream>
 #include "CMDManager.h"
-using namespace std;
 
 int main() {
     // ====== 最关键的初始化 ======
