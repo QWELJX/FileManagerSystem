@@ -165,16 +165,14 @@ FileManagerSystem1/
     ├── Main.cpp                   # 程序入口
     ├── CMDManager.h/.cpp          # 命令管理器
     ├── FileSystemCore.h/.cpp      # 文件系统核心
-    ├── PathUtils.h/.cpp           # 路径工具（可选）
-    ├── TreeNode.h/.cpp            # 树节点结构（可选）
-    └── TreeNodeType.h/.cpp        # 文件类型定义（可选）
+    └── shortcuts.txt              # 快捷标记配置文件（运行时自动创建）
 ```
 
 ### 核心文件说明
 - **Main.cpp**：程序入口，启动命令管理器
 - **CMDManager**：命令解析、分发和用户交互的核心
 - **FileSystemCore**：基于std::filesystem的文件操作封装
-- **shortcuts.txt**：程序运行时自动创建的快捷标记配置文件
+- **shortcuts.txt**：快捷标记配置文件（运行时自动创建）
 
 ## 技术栈与特性
 
