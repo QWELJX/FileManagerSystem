@@ -3,8 +3,10 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -712,23 +714,30 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
              << " 个目录\n\n";
     } else if (recursive) {
       try {
-        // 遍历递归目录迭代器
+        // 递归显示，使用层级缩进
         for (fs::recursive_directory_iterator it(dir), end; it != end; ++it) {
           try {
-            // 获取相对于起始目录 dir 的递归深度
+            // 获取深度
             int depth = it.depth();
 
-            // 计算缩进：每级深度缩进2个空格
-            std::string indent(depth * 2, '-');
+            // 根据深度生成前缀，每级增加4个字符的缩进
+            std::string prefix;
+            if (depth == 0) {
+              // 根目录：----
+              prefix = "----";
+            } else {
+              // 子项：depth*4个空格 + |---
+              prefix = std::string(depth * 3, ' ') + "|---";
+            }
 
             // 获取文件名
-            std::string name =EncodingUtils::WideToUTF8(it->path().filename().wstring());
+            std::string name = EncodingUtils::WideToUTF8(it->path().filename().wstring());
 
-            // 如果是目录，添加标记
+            // 如果是目录，添加/
             if (it->is_directory()) {
-              output << indent << "[+] " << name << "\n";
+              output << prefix<<"[+]" << name << "\n";
             } else {
-              output << indent << "[-] " << name << "\n";
+              output << prefix <<"[-]" << name << "\n";
             }
           } catch (const fs::filesystem_error &) {
             int depth = 0;
@@ -737,8 +746,8 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
             } catch (...) {
               depth = 0;
             }
-            std::string indent(depth * 2, ' ');
-            output << indent << "[无法访问条目]\n";
+            std::string prefix = (depth == 0) ? "----" : std::string(depth * 4, ' ') + "|---";
+            output << prefix << "[无法访问条目]\n";
           }
         }
       } catch (const fs::filesystem_error &e) {

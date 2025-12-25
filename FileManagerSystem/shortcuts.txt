@@ -2,4 +2,4 @@
 # 格式: 标记=路径
 # 使用 'mark 标记 路径' 添加快捷方式
 
-cursor=C:\Users\30438\Desktop\下载
+temp=C:\Users\30438\Desktop\temp
