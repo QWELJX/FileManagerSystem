@@ -54,6 +54,8 @@ private:
   void handleExists(const std::vector<std::string> &tokens);
   // 快捷目录管理
   void handleMark(const std::vector<std::string> &tokens);
+  // 运行可执行文件
+  void handleRun(const std::vector<std::string> &tokens);
 
   // 工具函数
   // 解析命令为令牌列表

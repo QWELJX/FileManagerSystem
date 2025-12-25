@@ -1,6 +1,7 @@
 ﻿#include "CMDManager.h"
 #include <fstream>
 #include <limits>
+#include <windows.h>
 
 // 构造函数：初始化命令映射
 CMDManager::CMDManager() {
@@ -28,7 +29,9 @@ void CMDManager::initCommands() {
                  {"pwd", [this](auto &t) { handlePwd(t); }},
                  {"exists", [this](auto &t) { handleExists(t); }},
                  // 快捷目录命令
-                 {"mark", [this](auto &t) { handleMark(t); }}};
+                 {"mark", [this](auto &t) { handleMark(t); }},
+                 // 运行程序命令
+                 {"run", [this](auto &t) { handleRun(t); }}};
 }
 
 // 解析命令为令牌
@@ -105,6 +108,7 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
   appendOutput("  mark del <标记>        - 删除快捷标记\n");
   appendOutput("  mark list              - 列出所有快捷标记\n");
+  appendOutput("  run <exe文件>          - 运行可执行文件\n");
   appendOutput("  exit, quit             - 退出程序\n");
   appendOutput("快捷标记用法:\n");
   appendOutput("  mark work D:\\Code\\Project    - 设置 'work' 标记\n");
@@ -112,6 +116,8 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput(
       "  cd ${work}/src                - 复合路径：跳转到标记目录的子目录\n");
   appendOutput("  copy ${work}/file.txt .       - 在其他命令中也可使用\n");
+  appendOutput("  run notepad.exe               - 运行记事本程序\n");
+  appendOutput("  run ${work}/myapp.exe         - 运行标记目录下的程序\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
@@ -176,8 +182,7 @@ void CMDManager::handleDel(const std::vector<std::string> &tokens) {
   std::cout << "确认删除 " << tokens[1] << "? (y/n): ";
   char confirm;
   std::cin >> confirm;
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
-                  '\n'); // 清除本行剩余输入
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n'); // 清除本行剩余输入
 
   if (confirm != 'y' && confirm != 'Y') {
     appendOutput("删除已取消\n");
@@ -337,6 +342,78 @@ void CMDManager::handleMark(const std::vector<std::string> &tokens) {
     appendOutput("快捷标记已设置: " + mark + " -> " + path + "\n");
     appendOutput("提示: 现在可以使用 'cd ${" + mark + "}' 或 'cd ${" + mark +
                  "}/子目录' 跳转目录\n");
+  }
+}
+
+// 处理 run 命令：运行可执行文件
+void CMDManager::handleRun(const std::vector<std::string> &tokens) {
+  if (tokens.size() < 2) {
+    showError("用法: run <可执行文件路径>");
+    return;
+  }
+
+  std::string exePath = tokens[1];
+
+  // 检查文件是否存在
+  if (!fs_core.pathExists(exePath)) {
+    showError("可执行文件不存在: " + exePath);
+    return;
+  }
+
+  // 检查是否为exe文件（简单检查扩展名）
+  std::string extension;
+  size_t dotPos = exePath.find_last_of('.');
+  if (dotPos != std::string::npos) {
+    extension = exePath.substr(dotPos + 1);
+    // 转换为小写进行比较
+    std::transform(extension.begin(), extension.end(), extension.begin(),
+                   ::tolower);
+  }
+
+  // 常见的可执行文件扩展名
+  std::vector<std::string> exeExtensions = {"exe", "bat", "cmd", "com"};
+  bool isExecutable = false;
+  for (const auto &ext : exeExtensions) {
+    if (extension == ext) {
+      isExecutable = true;
+      break;
+    }
+  }
+
+  if (!isExecutable) {
+    showError("不支持的文件类型: " + extension + " (支持: exe, bat, cmd, com)");
+    return;
+  }
+
+  // 尝试启动进程
+  STARTUPINFOA si = {sizeof(si)};
+  PROCESS_INFORMATION pi;
+
+  si.dwFlags = STARTF_USESHOWWINDOW;
+  si.wShowWindow = SW_SHOW;
+
+  // 转换为宽字符路径用于CreateProcessA
+  BOOL success =
+      CreateProcessA(NULL,                                // lpApplicationName
+                     const_cast<char *>(exePath.c_str()), // lpCommandLine
+                     NULL,                                // lpProcessAttributes
+                     NULL,                                // lpThreadAttributes
+                     FALSE,                               // bInheritHandles
+                     0,                                   // dwCreationFlags
+                     NULL,                                // lpEnvironment
+                     NULL,                                // lpCurrentDirectory
+                     &si,                                 // lpStartupInfo
+                     &pi // lpProcessInformation
+      );
+
+  if (success) {
+    // 关闭进程和线程句柄
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    appendOutput("程序已启动: " + exePath + "\n");
+  } else {
+    showError("启动程序失败: " + exePath +
+              " (错误码: " + std::to_string(GetLastError()) + ")");
   }
 }
 
