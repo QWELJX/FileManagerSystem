@@ -1,9 +1,11 @@
 ﻿#include "CMDManager.h"
+#include <fstream>
 #include <limits>
 
 // 构造函数：初始化命令映射
 CMDManager::CMDManager() {
   initCommands();
+  loadShortcuts(); // 加载快捷目录
   appendOutput("文件管理器已启动。输入 'help' 查看命令列表。\n");
   appendOutput("当前初始目录: " + fs_core.getCurrentPath().string() + "\n");
 }
@@ -24,7 +26,9 @@ void CMDManager::initCommands() {
                  {"cls", [this](auto &t) { handleCls(t); }},
                  {"clear", [this](auto &t) { handleCls(t); }}, // 别名
                  {"pwd", [this](auto &t) { handlePwd(t); }},
-                 {"exists", [this](auto &t) { handleExists(t); }}};
+                 {"exists", [this](auto &t) { handleExists(t); }},
+                 // 快捷目录命令
+                 {"mark", [this](auto &t) { handleMark(t); }}};
 }
 
 // 解析命令为令牌
@@ -61,9 +65,9 @@ std::vector<std::string> CMDManager::parseCommand(const std::string &cmd) {
       }
 
       // 如果没有正常闭合，这里仍然把已有内容作为一个整体参数交给后续处理
-      tokens.push_back(quoted);
+      tokens.push_back(expandShortcut(quoted));
     } else {
-      tokens.push_back(token);
+      tokens.push_back(expandShortcut(token));
     }
   }
   return tokens;
@@ -98,7 +102,13 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("  cls, clear             - 清屏\n");
   appendOutput("  pwd                    - 显示当前目录\n");
   appendOutput("  exists <路径>          - 检查路径是否存在\n");
+  appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
+  appendOutput("  mark del <标记>        - 删除快捷标记\n");
+  appendOutput("  mark list              - 列出所有快捷标记\n");
   appendOutput("  exit, quit             - 退出程序\n");
+  appendOutput("快捷标记用法:\n");
+  appendOutput("  mark work D:\\Code\\Project    - 设置 'work' 标记\n");
+  appendOutput("  cd ${work}                    - 使用快捷标记跳转目录\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
@@ -224,18 +234,23 @@ void CMDManager::handleCd(const std::vector<std::string> &tokens) {
     showError("切换目录失败: " + fs_core.getLastError());
     return;
   }
-  appendOutput("目录已切换到: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "\n");
+  appendOutput("目录已切换到: " +
+               FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
+               "\n");
 }
 
 void CMDManager::handleCls(const std::vector<std::string> &) {
   FileSystemCore::clearScreen();
   clearOutput();
-  appendOutput("屏幕已清空。当前目录: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
+  appendOutput("屏幕已清空。当前目录: " +
+               FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
                "\n");
 }
 
 void CMDManager::handlePwd(const std::vector<std::string> &) {
-  appendOutput("当前目录: " + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "\n");
+  appendOutput("当前目录: " +
+               FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
+               "\n");
 }
 
 void CMDManager::handleExists(const std::vector<std::string> &tokens) {
@@ -248,6 +263,75 @@ void CMDManager::handleExists(const std::vector<std::string> &tokens) {
     appendOutput("路径存在: " + tokens[1] + "\n");
   } else {
     appendOutput("路径不存在: " + tokens[1] + "\n");
+  }
+}
+
+// 处理 mark 命令：快捷标记管理
+void CMDManager::handleMark(const std::vector<std::string> &tokens) {
+  if (tokens.size() < 2) {
+    showError("用法: mark <标记> <路径> | mark del <标记> | mark list");
+    return;
+  }
+
+  std::string subcmd = tokens[1];
+
+  if (subcmd == "list") {
+    // 显示所有快捷标记
+    if (shortcuts.empty()) {
+      appendOutput("暂无快捷标记。使用 'mark <标记> <路径>' 添加快捷标记\n");
+      return;
+    }
+
+    appendOutput("快捷标记列表:\n");
+    appendOutput("================================\n");
+
+    for (const auto &pair : shortcuts) {
+      appendOutput("  " + pair.first + " -> " + pair.second + "\n");
+    }
+
+    appendOutput("================================\n");
+    appendOutput("共 " + std::to_string(shortcuts.size()) + " 个快捷标记\n");
+    appendOutput("提示: 可以使用 ${标记} 在命令中引用快捷路径\n");
+  } else if (subcmd == "del") {
+    // 删除快捷标记
+    if (tokens.size() < 3) {
+      showError("用法: mark del <标记>");
+      return;
+    }
+
+    std::string mark = tokens[2];
+
+    // 检查标记是否存在
+    if (shortcuts.find(mark) == shortcuts.end()) {
+      showError("快捷标记不存在: " + mark);
+      return;
+    }
+
+    // 删除快捷标记
+    shortcuts.erase(mark);
+    saveShortcuts();
+    appendOutput("快捷标记已删除: " + mark + "\n");
+  } else {
+    // 添加快捷标记：mark <标记> <路径>
+    if (tokens.size() < 3) {
+      showError("用法: mark <标记> <路径>");
+      return;
+    }
+
+    std::string mark = tokens[1];
+    std::string path = tokens[2];
+
+    // 检查路径是否存在
+    if (!fs_core.pathExists(path)) {
+      showError("路径不存在: " + path);
+      return;
+    }
+
+    // 添加快捷标记
+    shortcuts[mark] = path;
+    saveShortcuts();
+    appendOutput("快捷标记已设置: " + mark + " -> " + path + "\n");
+    appendOutput("提示: 现在可以使用 'cd ${" + mark + "}' 跳转到此目录\n");
   }
 }
 
@@ -304,7 +388,7 @@ void CMDManager::run() {
   while (true) {
     // 显示提示符
 
-    appendOutput("\n" + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) + "> ");
+    appendOutput("\n" + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +"> ");
     Show();
 
     // 获取用户输入
@@ -318,4 +402,88 @@ void CMDManager::run() {
     FileSystemCore::clearScreen();
     /*  system("cls");*/
   }
+}
+
+// === 快捷目录工具函数实现 ===
+
+// 从文件加载快捷目录映射
+void CMDManager::loadShortcuts() {
+  shortcuts.clear();
+  std::ifstream file(SHORTCUTS_FILE);
+  if (!file.is_open()) {
+    // 文件不存在是正常的，静默跳过
+    return;
+  }
+
+  std::string line;
+  while (std::getline(file, line)) {
+    // 跳过空行和注释行
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+
+    // 解析格式：标记=路径
+    size_t pos = line.find('=');
+    if (pos != std::string::npos) {
+      std::string mark = line.substr(0, pos);
+      std::string path = line.substr(pos + 1);
+      // 去除前后空格
+      mark.erase(mark.begin(),
+                 std::find_if(mark.begin(), mark.end(), [](unsigned char ch) {
+                   return !std::isspace(ch);
+                 }));
+      mark.erase(
+          std::find_if(mark.rbegin(), mark.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          mark.end());
+      path.erase(path.begin(),
+                 std::find_if(path.begin(), path.end(), [](unsigned char ch) {
+                   return !std::isspace(ch);
+                 }));
+      path.erase(
+          std::find_if(path.rbegin(), path.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          path.end());
+
+      if (!mark.empty() && !path.empty()) {
+        shortcuts[mark] = path;
+      }
+    }
+  }
+  file.close();
+}
+
+// 保存快捷目录映射到文件
+void CMDManager::saveShortcuts() {
+  std::ofstream file(SHORTCUTS_FILE);
+  if (!file.is_open()) {
+    showError("无法创建快捷目录文件: " + SHORTCUTS_FILE);
+    return;
+  }
+
+  // 添加文件头注释
+  file << "# 快捷目录标记文件\n";
+  file << "# 格式: 标记=路径\n";
+  file << "# 使用 'mark 标记 路径' 添加快捷方式\n\n";
+
+  // 写入所有快捷标记
+  for (const auto &pair : shortcuts) {
+    file << pair.first << "=" << pair.second << "\n";
+  }
+
+  file.close();
+}
+
+// 展开快捷标记：将${标记}替换为实际路径
+std::string CMDManager::expandShortcut(const std::string &token) {
+  if (token.size() >= 3 && token.substr(0, 2) == "${" && token.back() == '}') {
+    std::string mark = token.substr(2, token.size() - 3);
+    auto it = shortcuts.find(mark);
+    if (it != shortcuts.end()) {
+      return it->second;
+    }
+  }
+  return token;
 }

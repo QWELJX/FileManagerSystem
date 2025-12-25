@@ -17,6 +17,10 @@ private:
   FileSystemCore fs_core;    // 文件系统核心实例
   std::string output_buffer; // 输出缓冲区
 
+  // 快捷目录跳转相关
+  std::unordered_map<std::string, std::string> shortcuts; // 标记->路径映射
+  const std::string SHORTCUTS_FILE = "shortcuts.txt";     // 快捷目录文件
+
   // 命令映射表
   std::unordered_map<std::string,
                      std::function<void(const std::vector<std::string> &)>>
@@ -48,6 +52,8 @@ private:
   void handlePwd(const std::vector<std::string> &tokens);
   // 检查路径是否存在
   void handleExists(const std::vector<std::string> &tokens);
+  // 快捷目录管理
+  void handleMark(const std::vector<std::string> &tokens);
 
   // 工具函数
   // 解析命令为令牌列表
@@ -56,6 +62,14 @@ private:
   static std::string toLower(const std::string &str);
   // 显示错误信息
   void showError(const std::string &msg);
+
+  // 快捷目录工具函数
+  // 从文件加载快捷目录映射
+  void loadShortcuts();
+  // 保存快捷目录映射到文件
+  void saveShortcuts();
+  // 展开快捷标记：将${标记}替换为实际路径
+  static std::string expandShortcut(const std::string &token);
 
 public:
   // 单例访问点
