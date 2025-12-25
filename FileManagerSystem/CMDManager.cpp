@@ -1,8 +1,6 @@
 ﻿#include "CMDManager.h"
 #include <fstream>
 #include <limits>
-#include <windows.h>
-
 // 构造函数：初始化命令映射
 CMDManager::CMDManager() {
   initCommands();
@@ -31,7 +29,9 @@ void CMDManager::initCommands() {
                  // 快捷目录命令
                  {"mark", [this](auto &t) { handleMark(t); }},
                  // 运行程序命令
-                 {"run", [this](auto &t) { handleRun(t); }}};
+                 {"run", [this](auto &t) { handleRun(t); }},
+                 // 打开文件命令
+                 {"open", [this](auto &t) { handleOpen(t); }}};
 }
 
 // 解析命令为令牌
@@ -57,7 +57,7 @@ std::vector<std::string> CMDManager::parseCommand(const std::string &cmd) {
         while (iss >> token) {
           quoted += " " + token;
           if (!token.empty() && token.back() == '"') {
-            quoted.pop_back(); // 移除结尾引号
+            quoted.pop_back(); // 秽除结尾引号
             closed = true;
             break;
           }
@@ -107,17 +107,18 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("  exists <路径>          - 检查路径是否存在\n");
   appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
   appendOutput("  mark del <标记>        - 删除快捷标记\n");
+  appendOutput("  mark <标记> <路径>     - 设置快捷标记\n");
+  appendOutput("  mark del <标记>        - 删除快捷标记\n");
   appendOutput("  mark list              - 列出所有快捷标记\n");
-  appendOutput("  run <exe文件>          - 运行可执行文件\n");
+  appendOutput("  run <exe文件>          - 运行exe文件\n");
+  appendOutput("  open <txt文件>         - 用记事本打开txt文件\n");
   appendOutput("  exit, quit             - 退出程序\n");
+  appendOutput("\n");
   appendOutput("快捷标记用法:\n");
   appendOutput("  mark work D:\\Code\\Project    - 设置 'work' 标记\n");
   appendOutput("  cd ${work}                    - 使用快捷标记跳转目录\n");
   appendOutput(
       "  cd ${work}/src                - 复合路径：跳转到标记目录的子目录\n");
-  appendOutput("  copy ${work}/file.txt .       - 在其他命令中也可使用\n");
-  appendOutput("  run notepad.exe               - 运行记事本程序\n");
-  appendOutput("  run ${work}/myapp.exe         - 运行标记目录下的程序\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
@@ -182,7 +183,8 @@ void CMDManager::handleDel(const std::vector<std::string> &tokens) {
   std::cout << "确认删除 " << tokens[1] << "? (y/n): ";
   char confirm;
   std::cin >> confirm;
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n'); // 清除本行剩余输入
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(),
+                  '\n'); // 清除本行剩余输入
 
   if (confirm != 'y' && confirm != 'Y') {
     appendOutput("删除已取消\n");
@@ -345,10 +347,10 @@ void CMDManager::handleMark(const std::vector<std::string> &tokens) {
   }
 }
 
-// 处理 run 命令：运行可执行文件
+// 处理 run 命令：运行exe文件
 void CMDManager::handleRun(const std::vector<std::string> &tokens) {
   if (tokens.size() < 2) {
-    showError("用法: run <可执行文件路径>");
+    showError("用法: run <exe文件路径>");
     return;
   }
 
@@ -356,64 +358,73 @@ void CMDManager::handleRun(const std::vector<std::string> &tokens) {
 
   // 检查文件是否存在
   if (!fs_core.pathExists(exePath)) {
-    showError("可执行文件不存在: " + exePath);
+    showError("exe文件不存在: " + exePath);
     return;
   }
 
-  // 检查是否为exe文件（简单检查扩展名）
+  // 检查是否为exe文件
   std::string extension;
   size_t dotPos = exePath.find_last_of('.');
   if (dotPos != std::string::npos) {
     extension = exePath.substr(dotPos + 1);
-    // 转换为小写进行比较
     std::transform(extension.begin(), extension.end(), extension.begin(),
                    ::tolower);
   }
 
-  // 常见的可执行文件扩展名
-  std::vector<std::string> exeExtensions = {"exe", "bat", "cmd", "com"};
-  bool isExecutable = false;
-  for (const auto &ext : exeExtensions) {
-    if (extension == ext) {
-      isExecutable = true;
-      break;
-    }
-  }
-
-  if (!isExecutable) {
-    showError("不支持的文件类型: " + extension + " (支持: exe, bat, cmd, com)");
+  if (extension != "exe") {
+    showError("只支持运行exe文件");
     return;
   }
 
-  // 尝试启动进程
-  STARTUPINFOA si = {sizeof(si)};
-  PROCESS_INFORMATION pi;
+  // 简单地使用system命令运行exe
+  std::string command = "\"" + exePath + "\"";
+  int result = system(command.c_str());
 
-  si.dwFlags = STARTF_USESHOWWINDOW;
-  si.wShowWindow = SW_SHOW;
-
-  // 转换为宽字符路径用于CreateProcessA
-  BOOL success =
-      CreateProcessA(NULL,                                // lpApplicationName
-                     const_cast<char *>(exePath.c_str()), // lpCommandLine
-                     NULL,                                // lpProcessAttributes
-                     NULL,                                // lpThreadAttributes
-                     FALSE,                               // bInheritHandles
-                     0,                                   // dwCreationFlags
-                     NULL,                                // lpEnvironment
-                     NULL,                                // lpCurrentDirectory
-                     &si,                                 // lpStartupInfo
-                     &pi // lpProcessInformation
-      );
-
-  if (success) {
-    // 关闭进程和线程句柄
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
+  if (result == 0 ||
+      result == -1) { // system返回-1表示无法执行，但程序可能已经启动
     appendOutput("程序已启动: " + exePath + "\n");
   } else {
-    showError("启动程序失败: " + exePath +
-              " (错误码: " + std::to_string(GetLastError()) + ")");
+    showError("启动程序失败: " + exePath);
+  }
+}
+
+// 处理 open 命令：打开txt文件
+void CMDManager::handleOpen(const std::vector<std::string> &tokens) {
+  if (tokens.size() < 2) {
+    showError("用法: open <txt文件路径>");
+    return;
+  }
+
+  std::string filePath = tokens[1];
+
+  // 检查文件是否存在
+  if (!fs_core.pathExists(filePath)) {
+    showError("文件不存在: " + filePath);
+    return;
+  }
+
+  // 检查是否为txt文件
+  std::string extension;
+  size_t dotPos = filePath.find_last_of('.');
+  if (dotPos != std::string::npos) {
+    extension = filePath.substr(dotPos + 1);
+    std::transform(extension.begin(), extension.end(), extension.begin(),
+                   ::tolower);
+  }
+
+  if (extension != "txt") {
+    showError("只支持打开txt文件");
+    return;
+  }
+
+  // 简单地使用system命令打开txt文件
+  std::string command = "notepad \"" + filePath + "\"";
+  int result = system(command.c_str());
+
+  if (result == 0) {
+    appendOutput("文件已打开: " + filePath + "\n");
+  } else {
+    showError("打开文件失败: " + filePath);
   }
 }
 
@@ -589,3 +600,7 @@ std::string CMDManager::expandShortcut(const std::string &token) {
 
   return result;
 }
+
+#ifndef SE_ERR_DLLNOTFOUND
+#define SE_ERR_DLLNOTFOUND 32
+#endif

@@ -56,6 +56,8 @@ private:
   void handleMark(const std::vector<std::string> &tokens);
   // 运行可执行文件
   void handleRun(const std::vector<std::string> &tokens);
+  // 打开文件（使用系统默认程序）
+  void handleOpen(const std::vector<std::string> &tokens);
 
   // 工具函数
   // 解析命令为令牌列表
