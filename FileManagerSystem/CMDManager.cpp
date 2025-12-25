@@ -109,6 +109,9 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
   appendOutput("快捷标记用法:\n");
   appendOutput("  mark work D:\\Code\\Project    - 设置 'work' 标记\n");
   appendOutput("  cd ${work}                    - 使用快捷标记跳转目录\n");
+  appendOutput(
+      "  cd ${work}/src                - 复合路径：跳转到标记目录的子目录\n");
+  appendOutput("  copy ${work}/file.txt .       - 在其他命令中也可使用\n");
 }
 
 void CMDManager::handleDir(const std::vector<std::string> &tokens) {
@@ -291,7 +294,8 @@ void CMDManager::handleMark(const std::vector<std::string> &tokens) {
 
     appendOutput("================================\n");
     appendOutput("共 " + std::to_string(shortcuts.size()) + " 个快捷标记\n");
-    appendOutput("提示: 可以使用 ${标记} 在命令中引用快捷路径\n");
+    appendOutput(
+        "提示: 可以使用 ${标记} 或 ${标记}/子路径 在命令中引用快捷路径\n");
   } else if (subcmd == "del") {
     // 删除快捷标记
     if (tokens.size() < 3) {
@@ -331,7 +335,8 @@ void CMDManager::handleMark(const std::vector<std::string> &tokens) {
     shortcuts[mark] = path;
     saveShortcuts();
     appendOutput("快捷标记已设置: " + mark + " -> " + path + "\n");
-    appendOutput("提示: 现在可以使用 'cd ${" + mark + "}' 跳转到此目录\n");
+    appendOutput("提示: 现在可以使用 'cd ${" + mark + "}' 或 'cd ${" + mark +
+                 "}/子目录' 跳转目录\n");
   }
 }
 
@@ -388,7 +393,9 @@ void CMDManager::run() {
   while (true) {
     // 显示提示符
 
-    appendOutput("\n" + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +"> ");
+    appendOutput(
+        "\n" + FileSystemCore::WideToUTF8(fs_core.getCurrentPath().wstring()) +
+        "> ");
     Show();
 
     // 获取用户输入
@@ -476,14 +483,32 @@ void CMDManager::saveShortcuts() {
   file.close();
 }
 
-// 展开快捷标记：将${标记}替换为实际路径
+// 展开快捷标记：将${标记}替换为实际路径，支持复合路径
 std::string CMDManager::expandShortcut(const std::string &token) {
-  if (token.size() >= 3 && token.substr(0, 2) == "${" && token.back() == '}') {
-    std::string mark = token.substr(2, token.size() - 3);
-    auto it = shortcuts.find(mark);
-    if (it != shortcuts.end()) {
-      return it->second;
+  std::string result = token;
+  size_t pos = 0;
+
+  // 查找并替换所有的 ${标记} 模式
+  while ((pos = result.find("${", pos)) != std::string::npos) {
+    size_t endPos = result.find("}", pos + 2);
+    if (endPos != std::string::npos) {
+      // 提取标记名
+      std::string mark = result.substr(pos + 2, endPos - pos - 2);
+      auto it = shortcuts.find(mark);
+      if (it != shortcuts.end()) {
+        // 替换 ${标记} 为实际路径
+        result.replace(pos, endPos - pos + 1, it->second);
+        // 更新位置，跳过替换后的内容
+        pos += it->second.length();
+      } else {
+        // 标记不存在，跳过这个 ${...}
+        pos = endPos + 1;
+      }
+    } else {
+      // 没有找到匹配的 }，跳过
+      pos += 2;
     }
   }
-  return token;
+
+  return result;
 }

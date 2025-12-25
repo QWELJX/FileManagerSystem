@@ -92,8 +92,7 @@ private:
   static bool hasDeletePermission(const fs::path &path); // 权限检查（简单版）
 
   void setLastError(const std::string &msg) { last_error_ = msg; }
-  void listDirectoryImpl(const fs::path &dir, bool detailed, bool recursive,
-                         std::ostringstream &output) const;
+  void listDirectoryImpl(const fs::path &dir, bool detailed, bool recursive,std::ostringstream &output) const;
   // 字符处理
   static int getDisplayWidth(const std::string &str);
   static std::string padToDisplayWidth(const std::string &str, int targetWidth,

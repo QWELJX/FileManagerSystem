@@ -57,7 +57,7 @@ private:
 
   // 工具函数
   // 解析命令为令牌列表
-  static std::vector<std::string> parseCommand(const std::string &cmd);
+  std::vector<std::string> parseCommand(const std::string &cmd);
   // 将字符串转换为小写
   static std::string toLower(const std::string &str);
   // 显示错误信息
@@ -69,7 +69,7 @@ private:
   // 保存快捷目录映射到文件
   void saveShortcuts();
   // 展开快捷标记：将${标记}替换为实际路径
-  static std::string expandShortcut(const std::string &token);
+  std::string expandShortcut(const std::string &token);
 
 public:
   // 单例访问点
