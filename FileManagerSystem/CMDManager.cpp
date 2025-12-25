@@ -106,7 +106,7 @@ void CMDManager::handleDir(const std::vector<std::string> &tokens) {
   if (n == 1) {
     appendOutput(fs_core.listDirectory());
   } else if (n == 2) {
-    if (tokens[1] == "/s"||tokens[1]=="-s")
+    if (tokens[1] == "/r"||tokens[1]=="-r")
       appendOutput(fs_core.listDirectory(false, true));
     else if (tokens[1] == "/d" || tokens[1] == "-d")
       appendOutput(fs_core.listDirectory(true, false));

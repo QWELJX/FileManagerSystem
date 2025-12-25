@@ -609,7 +609,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path &dir, bool detailed,
                   return a.path().filename().string() <
                          b.path().filename().string();
                 });
-      const int NAME_WIDTH = 30; // 文件名列宽度
+      const int NAME_WIDTH = 40; // 文件名列宽度
       const int TYPE_WIDTH = 28; // 类型列宽度
       const int SIZE_WIDTH = 12; // 大小列宽度
       const int COL_SPACING = 2; // 列间间距（显示宽度）
