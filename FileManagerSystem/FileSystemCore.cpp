@@ -1,12 +1,10 @@
 ﻿// 标准库头文件
 #include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <map>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -18,6 +16,7 @@
 #include "FileSystemCore.h"
 
 // 编码转换工具命名空间
+#pragma region 编码工具
 namespace EncodingUtils {
     // UTF-8 字符串转宽字符串 (UTF-16)
     std::wstring UTF8ToWide(const std::string& utf8Str) {
@@ -69,12 +68,15 @@ namespace EncodingUtils {
     // 公共的WideToUTF8函数
 
 } // namespace EncodingUtils
-std::string FileSystemCore::WideToUTF8(const std::wstring& wideStr) {
+std::string FileSystemUtils::WideToUTF8(const std::wstring& wideStr) {
     return EncodingUtils::WideToUTF8(wideStr);
 }
-std::wstring FileSystemCore::UTF8ToWide(const std::string& utf8Str) {
+std::wstring FileSystemUtils::UTF8ToWide(const std::string& utf8Str) {
     return EncodingUtils::UTF8ToWide(utf8Str);
 }
+
+#pragma endregion
+
 // 扩展名到友好类型名的简单映射表
 static const std::unordered_map<std::string, std::string> EXT_TYPE_MAP = {
     {"txt", "文本文件"},
@@ -99,12 +101,9 @@ static const std::unordered_map<std::string, std::string> EXT_TYPE_MAP = {
     {"zip", "ZIP 压缩包"},
     {"rar", "RAR 压缩包"},
 };
-
-// 构造函数：初始化为当前目录
-FileSystemCore::FileSystemCore() { current_path = fs::current_path(); }
-
+#pragma region 文件管理器静态工具函数实现
 // 时间转换工具函数：将 filesystem 时间转换为 time_t
-std::time_t FileSystemCore::fileTimeToTimeT(const fs::file_time_type& ftime) {
+std::time_t FileSystemUtils::fileTimeToTimeT(const fs::file_time_type& ftime) {
     using namespace std::chrono;
     auto sctp = time_point_cast<system_clock::duration>(
         ftime - fs::file_time_type::clock::now() + system_clock::now());
@@ -112,7 +111,7 @@ std::time_t FileSystemCore::fileTimeToTimeT(const fs::file_time_type& ftime) {
 }
 
 // 格式化文件大小
-std::string FileSystemCore::formatFileSize(uintmax_t size) {
+std::string FileSystemUtils::formatFileSize(uintmax_t size) {
     const char* units[] = { " B", "KB", "MB", "GB" };
     int unit = 0;
     double formatted_size = static_cast<double>(size);
@@ -134,7 +133,7 @@ std::string FileSystemCore::formatFileSize(uintmax_t size) {
 }
 // 核心函数：解析UTF-8字符并返回其【字节数】和【显示宽度】
 // 针对常见控制台环境：ASCII=1宽度，中文等宽字符=2宽度
-std::pair<int, int> FileSystemCore::parseUtf8Char(const unsigned char* str,
+std::pair<int, int> FileSystemUtils::parseUtf8Char(const unsigned char* str,
     size_t len, size_t pos) {
     if (pos >= len) {
         return { 1, 2 }; // 防御性处理：默认按宽字符处理
@@ -182,7 +181,7 @@ std::pair<int, int> FileSystemCore::parseUtf8Char(const unsigned char* str,
     return { byte_count, display_width };
 }
 // 计算字符串的显示宽度
-int FileSystemCore::getDisplayWidth(const std::string& str) {
+int FileSystemUtils::getDisplayWidth(const std::string& str) {
     int total_width = 0;
     const unsigned char* p = reinterpret_cast<const unsigned char*>(str.c_str());
     size_t len = str.length();
@@ -196,9 +195,8 @@ int FileSystemCore::getDisplayWidth(const std::string& str) {
 }
 
 // 改进的格式化函数：可指定对齐方式
-std::string FileSystemCore::padToDisplayWidth(const std::string& str,
-    int targetWidth, bool leftAlign) {
-    int currentWidth = getDisplayWidth(str);
+std::string FileSystemUtils::padToDisplayWidth(const std::string& str, int targetWidth, bool leftAlign = true) {
+    int currentWidth = FileSystemUtils::getDisplayWidth(str);
 
     // 情况1：宽度不足
     if (currentWidth <= targetWidth) {
@@ -227,7 +225,7 @@ std::string FileSystemCore::padToDisplayWidth(const std::string& str,
     }
 
     for (size_t i = 0; i < len;) {
-        auto [bytes, charWidth] = parseUtf8Char(p, len, i);
+        auto [bytes, charWidth] = FileSystemUtils::parseUtf8Char(p, len, i);
 
         if (accumulatedWidth + charWidth > availableWidth) {
             break;
@@ -250,23 +248,8 @@ std::string FileSystemCore::padToDisplayWidth(const std::string& str,
     return result;
 }
 
-// 统一生成绝对路径（基于 current_path）
-fs::path
-FileSystemCore::makeAbsolutePath(const std::string& relative_or_abs) const {
-    // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
-    std::wstring wide_path = EncodingUtils::UTF8ToWide(relative_or_abs);
-    fs::path p(wide_path);
-    // 如果已经是绝对路径，直接返回规范化后的结果
-    if (p.is_absolute()) {
-        return p.lexically_normal();
-    }
-    // 相对路径则基于当前工作目录拼接后规范化
-    return (current_path / p).lexically_normal();
-}
-
 // 辅助函数：基于系统当前目录生成绝对路径
-fs::path
-FileSystemCore::makeAbsoluteFromCurrentDir(const std::string& relative_or_abs) {
+fs::path FileSystemUtils::makeAbsoluteFromCurrentDir(const std::string& relative_or_abs) {
     // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
     std::wstring wide_path = EncodingUtils::UTF8ToWide(relative_or_abs);
     fs::path p(wide_path);
@@ -275,8 +258,7 @@ FileSystemCore::makeAbsoluteFromCurrentDir(const std::string& relative_or_abs) {
 }
 
 // 基于指定 base 生成绝对路径（静态版本）
-fs::path FileSystemCore::makeAbsolutePath(const std::string& path,
-    const fs::path& base) {
+fs::path FileSystemUtils::makeAbsolutePath(const std::string& path, const fs::path& base) {
     // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
     std::wstring wide_path = EncodingUtils::UTF8ToWide(path);
     fs::path p(wide_path);
@@ -288,40 +270,8 @@ fs::path FileSystemCore::makeAbsolutePath(const std::string& path,
     return (base / p).lexically_normal();
 }
 
-// 获取当前路径
-fs::path FileSystemCore::getCurrentPath() const { return current_path; }
-
-// 设置当前路径（跳转目录）
-bool FileSystemCore::setCurrentPath(const std::string& new_path) {
-    try {
-        // 支持相对路径和绝对路径
-        fs::path abs_path = makeAbsolutePath(new_path);
-
-        if (!fs::exists(abs_path)) {
-            setLastError("路径不存在: " +
-                EncodingUtils::WideToUTF8(abs_path.wstring()));
-            return false;
-        }
-
-        if (!fs::is_directory(abs_path)) {
-            setLastError("不是目录: " +
-                EncodingUtils::WideToUTF8(abs_path.wstring()));
-            return false;
-        }
-
-        current_path = abs_path; // 更新当前目录
-        last_error_.clear();
-        return true;
-
-    }
-    catch (const fs::filesystem_error& e) {
-        setLastError(e.what());
-        return false;
-    }
-}
-
 // 安全辅助函数：检查是否为系统关键路径（仅 Windows，防止误删系统目录）
-bool FileSystemCore::isCriticalSystemPath(const fs::path& path) {
+bool FileSystemUtils::isCriticalSystemPath(const fs::path& path) {
     const std::string path_str = path.lexically_normal().string();
 
     // 防止删除典型系统目录或磁盘根
@@ -349,7 +299,7 @@ bool FileSystemCore::isCriticalSystemPath(const fs::path& path) {
 }
 
 // 权限检查：检查是否有删除权限（简化版本，检查写权限）
-bool FileSystemCore::hasDeletePermission(const fs::path& path) {
+bool FileSystemUtils::hasDeletePermission(const fs::path& path) {
     std::error_code ec;
 
     // 检查文件/目录权限
@@ -374,6 +324,83 @@ bool FileSystemCore::hasDeletePermission(const fs::path& path) {
     }
 
     return is_writable;
+}
+#pragma endregion
+#pragma region FileManager内部函数实现
+// 构造函数：初始化为当前目录
+FileSystemCore::FileSystemCore() { current_path = fs::current_path(); }
+
+
+// 统一生成绝对路径（基于 current_path）
+fs::path FileSystemCore::makeAbsolutePath(const std::string& relative_or_abs) const {
+    // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
+    std::wstring wide_path = EncodingUtils::UTF8ToWide(relative_or_abs);
+    fs::path p(wide_path);
+    // 如果已经是绝对路径，直接返回规范化后的结果
+    if (p.is_absolute()) {
+        return p.lexically_normal();
+    }
+    // 相对路径则基于当前工作目录拼接后规范化
+    return (current_path / p).lexically_normal();
+}
+
+
+
+// 获取当前路径
+fs::path FileSystemCore::getCurrentPath() const { return current_path; }
+
+// 设置当前路径（跳转目录）
+bool FileSystemCore::ChangePath(const std::string& new_path) {
+    try {
+        // 支持相对路径和绝对路径
+        fs::path abs_path = makeAbsolutePath(new_path);
+
+        if (!fs::exists(abs_path)) {
+            setLastError("路径不存在: " +
+                EncodingUtils::WideToUTF8(abs_path.wstring()));
+            return false;
+        }
+
+        if (!fs::is_directory(abs_path)) {
+            setLastError("不是目录: " +
+                EncodingUtils::WideToUTF8(abs_path.wstring()));
+            return false;
+        }
+
+        current_path = abs_path; // 更新当前目录
+        last_error_.clear();
+        return true;
+
+    }
+    catch (const fs::filesystem_error& e) {
+        setLastError(e.what());
+        return false;
+    }
+}
+bool FileSystemCore::setCurrentPath(const fs::path& new_path) {
+    try
+    {
+        if (!fs::exists(new_path)) {
+            setLastError("路径不存在: " +
+                EncodingUtils::WideToUTF8(new_path.wstring()));
+            return false;
+        }
+
+        if (!fs::is_directory(new_path)) {
+            setLastError("不是目录: " +
+                EncodingUtils::WideToUTF8(new_path.wstring()));
+            return false;
+        }
+
+        current_path = new_path; // 更新当前目录
+        last_error_.clear();
+        return true;
+
+    }
+    catch (const fs::filesystem_error& e) {
+        setLastError(e.what());
+        return false;
+    }
 }
 
 // 创建目录
@@ -483,14 +510,14 @@ bool FileSystemCore::deletePath(const std::string& path, bool recursive) {
         }
 
         // 3. 安全检查：确认不是系统关键路径
-        if (isCriticalSystemPath(abs_target)) {
+        if (FileSystemUtils::isCriticalSystemPath(abs_target)) {
             setLastError("禁止删除系统关键路径: " +
                 EncodingUtils::WideToUTF8(abs_target.wstring()));
             return false;
         }
 
         // 4. 检查删除权限
-        if (!hasDeletePermission(abs_target)) {
+        if (!FileSystemUtils::hasDeletePermission(abs_target)) {
             setLastError("没有删除权限: " +
                 EncodingUtils::WideToUTF8(abs_target.wstring()));
             return false;
@@ -513,6 +540,8 @@ bool FileSystemCore::deletePath(const std::string& path, bool recursive) {
         return false;
     }
 }
+
+
 // 递归删除：删除目录及其所有子文件和子目录
 bool FileSystemCore::deleteRecursive(const fs::path& target) {
     try {
@@ -598,6 +627,7 @@ bool FileSystemCore::movePath(const std::string& source,
     }
 }
 
+
 // 重命名
 bool FileSystemCore::renamePath(const std::string& old_name,
     const std::string& new_name) {
@@ -639,11 +669,10 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
             const int SIZE_WIDTH = 12; // 大小列宽度
             const int COL_SPACING = 2; // 列间间距（显示宽度）
             const int TIME_WIDTH = 19; // 时间列宽度（固定格式，纯ASCII）
-            std::string header_name = padToDisplayWidth("Name", NAME_WIDTH);
-            std::string header_type = padToDisplayWidth("类型", TYPE_WIDTH);
-            std::string header_time = padToDisplayWidth("修改时间", TIME_WIDTH);
-            std::string header_size =
-                padToDisplayWidth("大小", SIZE_WIDTH, false); // 右对齐
+            std::string header_name = FileSystemUtils::padToDisplayWidth("Name", NAME_WIDTH);
+            std::string header_type = FileSystemUtils::padToDisplayWidth("类型", TYPE_WIDTH);
+            std::string header_time = FileSystemUtils::padToDisplayWidth("修改时间", TIME_WIDTH);
+            std::string header_size = FileSystemUtils::padToDisplayWidth("大小", SIZE_WIDTH, false); // 右对齐
             output << header_name << std::string(COL_SPACING, ' ') << header_type
                 << std::string(COL_SPACING, ' ') << header_time
                 << std::string(COL_SPACING, ' ') << header_size << "\n";
@@ -685,7 +714,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                     }
                     // 获取时间
                     auto ftime = fs::last_write_time(entry);
-                    std::time_t tt = fileTimeToTimeT(ftime);
+                    std::time_t tt = FileSystemUtils::fileTimeToTimeT(ftime);
                     std::tm tm;
                     localtime_s(&tm, &tt);
                     char time_buf[20];
@@ -694,7 +723,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                     // 获取大小
                     std::string size_str;
                     if (is_file) {
-                        size_str = formatFileSize(fs::file_size(entry));
+                        size_str = FileSystemUtils::formatFileSize(fs::file_size(entry));
                     }
                     else {
                         size_str = "";
@@ -702,16 +731,13 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
 
                     // ===== 关键修改：使用统一的宽度格式化 =====
                     // 文件名列：左对齐
-                    std::string display_name = padToDisplayWidth(name, NAME_WIDTH, true);
+                    std::string display_name = FileSystemUtils::padToDisplayWidth(name, NAME_WIDTH, true);
                     // 时间列：左对齐（纯ASCII，但为了统一也格式化）
-                    std::string display_time =
-                        padToDisplayWidth(time_buf, TIME_WIDTH, true);
+                    std::string display_time = FileSystemUtils::padToDisplayWidth(time_buf, TIME_WIDTH, true);
                     // 类型列：左对齐
-                    std::string display_type =
-                        padToDisplayWidth(type_name, TYPE_WIDTH, true);
+                    std::string display_type = FileSystemUtils::padToDisplayWidth(type_name, TYPE_WIDTH, true);
                     // 大小列：右对齐（数字通常右对齐）
-                    std::string display_size =
-                        padToDisplayWidth(size_str, SIZE_WIDTH, false);
+                    std::string display_size = FileSystemUtils::padToDisplayWidth(size_str, SIZE_WIDTH, false);
 
                     // 输出格式化后的行，手动控制列间距
                     output << display_name << std::string(COL_SPACING, ' ')
@@ -798,10 +824,15 @@ bool FileSystemCore::pathExists(const std::string& path) const {
     }
 }
 
-// 清屏函数（Windows）
-void FileSystemCore::clearScreen() { system("cls"); }
-
 // 获取父目录路径
 std::string FileSystemCore::getParentPath() const {
     return current_path.parent_path().string();
 }
+#pragma endregion
+
+
+
+
+
+
+
