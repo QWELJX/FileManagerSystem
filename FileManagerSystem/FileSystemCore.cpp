@@ -14,69 +14,6 @@
 
 // 自定义头文件
 #include "FileSystemCore.h"
-
-// 编码转换工具命名空间
-#pragma region 编码工具
-namespace EncodingUtils {
-    // UTF-8 字符串转宽字符串 (UTF-16)
-    std::wstring UTF8ToWide(const std::string& utf8Str) {
-        if (utf8Str.empty()) {
-            return L"";
-        }
-
-        int wideLen =
-            MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
-        if (wideLen == 0) {
-            return L"";
-        }
-
-        std::wstring wideStr(wideLen, 0);
-        MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
-
-        // 移除末尾的 null 终止符
-        if (!wideStr.empty() && wideStr.back() == L'\0') {
-            wideStr.pop_back();
-        }
-
-        return wideStr;
-    }
-
-    // 宽字符串 (UTF-16) 转 UTF-8 字符串
-    std::string WideToUTF8(const std::wstring& wideStr) {
-        if (wideStr.empty()) {
-            return "";
-        }
-
-        int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, nullptr, 0,
-            nullptr, nullptr);
-        if (utf8Len == 0) {
-            return "";
-        }
-
-        std::string utf8Str(utf8Len, 0);
-        WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, &utf8Str[0], utf8Len,
-            nullptr, nullptr);
-
-        // 移除末尾的 null 终止符
-        if (!utf8Str.empty() && utf8Str.back() == '\0') {
-            utf8Str.pop_back();
-        }
-
-        return utf8Str;
-    }
-
-    // 公共的WideToUTF8函数
-
-} // namespace EncodingUtils
-std::string FileSystemUtils::WideToUTF8(const std::wstring& wideStr) {
-    return EncodingUtils::WideToUTF8(wideStr);
-}
-std::wstring FileSystemUtils::UTF8ToWide(const std::string& utf8Str) {
-    return EncodingUtils::UTF8ToWide(utf8Str);
-}
-
-#pragma endregion
-
 // 扩展名到友好类型名的简单映射表
 static const std::unordered_map<std::string, std::string> EXT_TYPE_MAP = {
     {"txt", "文本文件"},
@@ -102,6 +39,52 @@ static const std::unordered_map<std::string, std::string> EXT_TYPE_MAP = {
     {"rar", "RAR 压缩包"},
 };
 #pragma region 文件管理器静态工具函数实现
+// UTF-8 字符串转宽字符串 (UTF-16)
+std::wstring FileSystemUtils::UTF8ToWide(const std::string& utf8Str) {
+    if (utf8Str.empty()) {
+        return L"";
+    }
+
+    int wideLen =
+        MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
+    if (wideLen == 0) {
+        return L"";
+    }
+
+    std::wstring wideStr(wideLen, 0);
+    MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
+
+    // 移除末尾的 null 终止符
+    if (!wideStr.empty() && wideStr.back() == L'\0') {
+        wideStr.pop_back();
+    }
+
+    return wideStr;
+}
+
+// 宽字符串 (UTF-16) 转 UTF-8 字符串
+std::string FileSystemUtils::WideToUTF8(const std::wstring& wideStr) {
+    if (wideStr.empty()) {
+        return "";
+    }
+
+    int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, nullptr, 0,
+        nullptr, nullptr);
+    if (utf8Len == 0) {
+        return "";
+    }
+
+    std::string utf8Str(utf8Len, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, &utf8Str[0], utf8Len,
+        nullptr, nullptr);
+
+    // 移除末尾的 null 终止符
+    if (!utf8Str.empty() && utf8Str.back() == '\0') {
+        utf8Str.pop_back();
+    }
+
+    return utf8Str;
+}
 // 时间转换工具函数：将 filesystem 时间转换为 time_t
 std::time_t FileSystemUtils::fileTimeToTimeT(const fs::file_time_type& ftime) {
     using namespace std::chrono;
@@ -251,7 +234,7 @@ std::string FileSystemUtils::padToDisplayWidth(const std::string& str, int targe
 // 辅助函数：基于系统当前目录生成绝对路径
 fs::path FileSystemUtils::makeAbsoluteFromCurrentDir(const std::string& relative_or_abs) {
     // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
-    std::wstring wide_path = EncodingUtils::UTF8ToWide(relative_or_abs);
+    std::wstring wide_path = FileSystemUtils::UTF8ToWide(relative_or_abs);
     fs::path p(wide_path);
     // 这里直接依赖 fs::current_path()
     return fs::absolute(p).lexically_normal();
@@ -260,7 +243,7 @@ fs::path FileSystemUtils::makeAbsoluteFromCurrentDir(const std::string& relative
 // 基于指定 base 生成绝对路径（静态版本）
 fs::path FileSystemUtils::makeAbsolutePath(const std::string& path, const fs::path& base) {
     // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
-    std::wstring wide_path = EncodingUtils::UTF8ToWide(path);
+    std::wstring wide_path = FileSystemUtils::UTF8ToWide(path);
     fs::path p(wide_path);
     // 如果已经是绝对路径，直接返回规范化后的结果
     if (p.is_absolute()) {
@@ -334,7 +317,7 @@ FileSystemCore::FileSystemCore() { current_path = fs::current_path(); }
 // 统一生成绝对路径（基于 current_path）
 fs::path FileSystemCore::makeAbsolutePath(const std::string& relative_or_abs) const {
     // 将UTF-8字符串转换为宽字符串，确保中文等非ASCII字符正确处理
-    std::wstring wide_path = EncodingUtils::UTF8ToWide(relative_or_abs);
+    std::wstring wide_path = FileSystemUtils::UTF8ToWide(relative_or_abs);
     fs::path p(wide_path);
     // 如果已经是绝对路径，直接返回规范化后的结果
     if (p.is_absolute()) {
@@ -357,13 +340,13 @@ bool FileSystemCore::ChangePath(const fs::path& new_path) {
 
         if (!fs::exists(abs_path)) {
             setLastError("路径不存在: " +
-                EncodingUtils::WideToUTF8(abs_path.wstring()));
+                FileSystemUtils::WideToUTF8(abs_path.wstring()));
             return false;
         }
 
         if (!fs::is_directory(abs_path)) {
             setLastError("不是目录: " +
-                EncodingUtils::WideToUTF8(abs_path.wstring()));
+                FileSystemUtils::WideToUTF8(abs_path.wstring()));
             return false;
         }
 
@@ -382,13 +365,13 @@ bool FileSystemCore::setCurrentPath(const fs::path& new_path) {
     {
         if (!fs::exists(new_path)) {
             setLastError("路径不存在: " +
-                EncodingUtils::WideToUTF8(new_path.wstring()));
+                FileSystemUtils::WideToUTF8(new_path.wstring()));
             return false;
         }
 
         if (!fs::is_directory(new_path)) {
             setLastError("不是目录: " +
-                EncodingUtils::WideToUTF8(new_path.wstring()));
+                FileSystemUtils::WideToUTF8(new_path.wstring()));
             return false;
         }
 
@@ -413,9 +396,9 @@ bool FileSystemCore::createDirectory(const fs::path& dir_name,
         if (fs::exists(full_path)) {
             setLastError(fs::is_directory(full_path)
                 ? "目录已存在: " +
-                EncodingUtils::WideToUTF8(full_path.wstring())
+                FileSystemUtils::WideToUTF8(full_path.wstring())
                 : "路径已存在但不是目录: " +
-                EncodingUtils::WideToUTF8(full_path.wstring()));
+                FileSystemUtils::WideToUTF8(full_path.wstring()));
             return false;
         }
 
@@ -423,7 +406,7 @@ bool FileSystemCore::createDirectory(const fs::path& dir_name,
         if (!recursive && !fs::exists(full_path.parent_path())) {
             setLastError(
                 "父目录不存在，请使用递归模式: " +
-                EncodingUtils::WideToUTF8(full_path.parent_path().wstring()));
+                FileSystemUtils::WideToUTF8(full_path.parent_path().wstring()));
             return false;
         }
 
@@ -439,7 +422,7 @@ bool FileSystemCore::createDirectory(const fs::path& dir_name,
         }
         else {
             setLastError(
-                "创建目录失败: " + EncodingUtils::WideToUTF8(full_path.wstring()) +
+                "创建目录失败: " + FileSystemUtils::WideToUTF8(full_path.wstring()) +
                 " - " + ec.message());
             return false;
         }
@@ -458,13 +441,13 @@ bool FileSystemCore::createFile(const fs::path& file_name) {
 
         if (fs::exists(full_path)) {
             setLastError("文件已存在: " +
-                EncodingUtils::WideToUTF8(full_path.wstring()));
+                FileSystemUtils::WideToUTF8(full_path.wstring()));
             return false;
         }
 
         // 检测父目录是否存在
         if (!fs::exists(full_path.parent_path())) {
-            setLastError("父目录不存在: " + EncodingUtils::WideToUTF8(
+            setLastError("父目录不存在: " + FileSystemUtils::WideToUTF8(
                 full_path.parent_path().wstring()));
             return false; // 添加return语句，防止父目录不存在时继续执行
         }
@@ -476,7 +459,7 @@ bool FileSystemCore::createFile(const fs::path& file_name) {
         // 使用_wfopen_s打开文件，确保支持UTF-16路径
         errno_t err = _wfopen_s(&file, widePath.c_str(), L"w, ccs=UTF-8");
         if (err != 0 || file == nullptr) {
-            setLastError("无法创建文件: " + EncodingUtils::WideToUTF8(widePath));
+            setLastError("无法创建文件: " + FileSystemUtils::WideToUTF8(widePath));
             return false;
         }
 
@@ -505,21 +488,21 @@ bool FileSystemCore::deletePath(const fs::path& path, bool recursive) {
         // 2. 检查路径是否存在
         if (!fs::exists(abs_target)) {
             setLastError("路径不存在: " +
-                EncodingUtils::WideToUTF8(abs_target.wstring()));
+                FileSystemUtils::WideToUTF8(abs_target.wstring()));
             return false;
         }
 
         // 3. 安全检查：确认不是系统关键路径
         if (FileSystemUtils::isCriticalSystemPath(abs_target)) {
             setLastError("禁止删除系统关键路径: " +
-                EncodingUtils::WideToUTF8(abs_target.wstring()));
+                FileSystemUtils::WideToUTF8(abs_target.wstring()));
             return false;
         }
 
         // 4. 检查删除权限
         if (!FileSystemUtils::hasDeletePermission(abs_target)) {
             setLastError("没有删除权限: " +
-                EncodingUtils::WideToUTF8(abs_target.wstring()));
+                FileSystemUtils::WideToUTF8(abs_target.wstring()));
             return false;
         }
 
@@ -552,7 +535,7 @@ bool FileSystemCore::deleteRecursive(const fs::path& target) {
 
         if (ec) {
             setLastError(
-                "递归删除失败: " + EncodingUtils::WideToUTF8(target.wstring()) +
+                "递归删除失败: " + FileSystemUtils::WideToUTF8(target.wstring()) +
                 " - " + ec.message());
             return false;
         }
@@ -575,14 +558,14 @@ bool FileSystemCore::deleteSingle(const fs::path& target) {
         bool success = fs::remove(target, ec);
 
         if (ec) {
-            setLastError("删除失败: " + EncodingUtils::WideToUTF8(target.wstring()) +
+            setLastError("删除失败: " + FileSystemUtils::WideToUTF8(target.wstring()) +
                 " - " + ec.message());
             return false;
         }
 
         if (!success) {
             setLastError("删除操作失败: " +
-                EncodingUtils::WideToUTF8(target.wstring()));
+                FileSystemUtils::WideToUTF8(target.wstring()));
             return false;
         }
 
@@ -605,7 +588,7 @@ bool FileSystemCore::movePath(const fs::path& source, const fs::path& destinatio
         // 检查源路径是否存在
         if (!fs::exists(abs_src)) {
             setLastError("源路径不存在: " +
-                EncodingUtils::WideToUTF8(abs_src.wstring()));
+                FileSystemUtils::WideToUTF8(abs_src.wstring()));
             return false;
         }
 
@@ -640,11 +623,9 @@ std::string FileSystemCore::listDirectory(bool detailed, bool recursive) const {
 }
 
 // 目录列表实现：对指定目录进行列表显示，支持详细模式和递归
-void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
-    bool recursive,
-    std::ostringstream& output) const {
+void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,bool recursive,std::ostringstream& output) const {
     try {
-        output << "目录: " << EncodingUtils::WideToUTF8(dir.wstring()) << "\n\n";
+        output << "目录: " << FileSystemUtils::WideToUTF8(dir.wstring()) << "\n\n";
 
         if (detailed) {
             // 收集条目并排序
@@ -676,8 +657,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                 << std::string(COL_SPACING, ' ') << header_size << "\n";
 
             // 2. 输出表头分隔线（可选，视觉辅助）
-            int total_width =
-                NAME_WIDTH + TIME_WIDTH + TYPE_WIDTH + SIZE_WIDTH + (3 * COL_SPACING);
+            int total_width =NAME_WIDTH + TIME_WIDTH + TYPE_WIDTH + SIZE_WIDTH + (3 * COL_SPACING);
             output << std::string(total_width, '-') << "\n";
             // 格式化输出
             for (const auto& entry : entries) {
@@ -686,8 +666,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                     bool is_dir = fs::is_directory(status);
                     bool is_file = fs::is_regular_file(status);
                     // 获取文件名
-                    const std::string name =
-                        EncodingUtils::WideToUTF8(entry.path().filename().wstring());
+                    const std::string name = FileSystemUtils::WideToUTF8(entry.path().filename().wstring());
                     // 计算类型名称
                     std::string type_name;
                     if (is_dir) {
@@ -746,7 +725,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                 }
                 catch (const fs::filesystem_error&) {
                     output << " [无法访问] "
-                        << EncodingUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
+                        << FileSystemUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
                 }
             }
             int file_count = std::count_if(
@@ -776,7 +755,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
                         }
 
                         // 获取文件名
-                        std::string name = EncodingUtils::WideToUTF8(it->path().filename().wstring());
+                        std::string name = FileSystemUtils::WideToUTF8(it->path().filename().wstring());
 
                         // 如果是目录，添加/
                         if (it->is_directory()) {

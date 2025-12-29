@@ -22,10 +22,7 @@ private:
     const std::string SHORTCUTS_FILE = "shortcuts.txt";     // 快捷目录文件
 
     // 命令映射表
-    std::unordered_map<std::string,
-        std::function<void(const std::vector<std::string>&)>>
-        command_map;
-
+    std::unordered_map<std::string,std::function<void(const std::vector<std::string>&)>>command_map;
     // 初始化命令映射
     void initCommands();
 
