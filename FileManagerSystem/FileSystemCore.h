@@ -52,30 +52,30 @@ public:
     // 参数：dir_name - 要创建的目录名称（UTF-8编码）
     //       recursive - 是否递归创建父目录（默认为false）
     // 返回：成功返回true，失败返回false并设置错误信息
-    bool createDirectory(const std::string& dir_name, bool recursive = false);
+    bool createDirectory(const fs::path& dir_name, bool recursive = false);
     // 创建空文件
     // 参数：file_name - 要创建的文件名称（UTF-8编码）
     // 返回：成功返回true，失败返回false并设置错误信息
-    bool createFile(const std::string& file_name);
+    bool createFile(const fs::path& file_name);
     // 删除文件或目录
     // 参数：path - 要删除的路径（UTF-8编码）
     //       recursive - 是否递归删除目录内容（默认为false）
     // 返回：成功返回true，失败返回false并设置错误信息
-    bool deletePath(const std::string& path, bool recursive = false);
+    bool deletePath(const fs::path& path, bool recursive = false);
     // 移动或重命名文件/目录
     // 参数：source - 源路径（UTF-8编码）
     //       destination - 目标路径（UTF-8编码）
     // 返回：成功返回true，失败返回false并设置错误信息
-    bool movePath(const std::string& source, const std::string& destination);
+    bool movePath(const fs::path& source, const fs::path& destination);
     // 重命名文件或目录
     // 参数：old_name - 旧名称（UTF-8编码）
     //       new_name - 新名称（UTF-8编码）
     // 返回：成功返回true，失败返回false并设置错误信息
-    bool renamePath(const std::string& old_name, const std::string& new_name);
+    bool renamePath(const fs::path & old_name, const fs::path & new_name);
 	// 更改当前工作目录
 	// 参数：new_path - 要切换到的新目录路径（UTF-8编码）
 	// 返回：成功返回true，失败返回false并设置错误信息
-    bool ChangePath(const std::string& new_path);
+    bool ChangePath(const fs::path& new_path);
     // 查询与列表
     // 列出目录内容
     // 参数：detailed - 是否显示详细信息（默认为false）
@@ -85,7 +85,7 @@ public:
     // 检查路径是否存在
     // 参数：path - 要检查的路径（UTF-8编码）
     // 返回：存在返回true，不存在返回false
-    bool pathExists(const std::string& path) const;
+    bool pathExists(const fs::path& path) const;
     //绝对路径获取辅助工具
     fs::path makeAbsolutePath(const std::string& relative_or_abs) const; // 基于 current_path
 private:

@@ -123,14 +123,16 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
     int n = tokens.size();
     if (n == 1) {
         appendOutput(fs_core.listDirectory());
+        return;
     }
-    else if (n == 2) {
+    if (n == 2) {
         if (tokens[1] == "/r" || tokens[1] == "-r")
             appendOutput(fs_core.listDirectory(false, true));
         else if (tokens[1] == "/d" || tokens[1] == "-d")
             appendOutput(fs_core.listDirectory(true, false));
         else
             showError(tokens[1] + "符号未知");
+        return;
     }
     else {
         showError("暂不支持此功能");
@@ -143,13 +145,20 @@ void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
         showError("用法: mkdir [/r] <目录名>");
         return;
     }
-    else if (n == 2) {
-        if (!fs_core.createDirectory(tokens[1])) {
-            showError("目录创建失败: " + fs_core.getLastError());
+    
+    if (n == 2) {
+        if (tokens[1] == "/r" || tokens[1] == "-r") {
+            showError("用法: mkdir [/p] <目录名>");
+            return;
         }
+        if (!fs_core.createDirectory(fs_core.makeAbsolutePath(tokens[1]), false)) {
+            showError("目录创建失败: " + fs_core.getLastError());
+			return;
+        }
+        return;
     }
-    else if (n == 3) {
-        if (!fs_core.createDirectory(tokens[2],
+    if (n == 3) {
+        if (!fs_core.createDirectory(fs_core.makeAbsolutePath(tokens[2]),
             (tokens[1] == "/p" || tokens[1] == "-p"))) {
             showError("目录创建失败: " + fs_core.getLastError());
         }
@@ -166,7 +175,7 @@ void CMDManager::handleTouch(const std::vector<std::string>& tokens) {
         return;
     }
 
-    if (!fs_core.createFile(tokens[1])) {
+    if (!fs_core.createFile(fs_core.makeAbsolutePath(tokens[1]))) {
         showError("文件创建失败: " + fs_core.getLastError());
         return;
     }
@@ -180,8 +189,7 @@ void CMDManager::handleDel(const std::vector<std::string>& tokens) {
         return;
     }
 
-    bool recursive =
-        (tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
+    bool recursive =(tokens.size() > 2 && (tokens[2] == "/r" || tokens[2] == "-r"));
 
     std::cout << "确认删除 " << tokens[1] << "? (y/n): ";
     char confirm;
@@ -194,7 +202,7 @@ void CMDManager::handleDel(const std::vector<std::string>& tokens) {
         return;
     }
 
-    if (!fs_core.deletePath(tokens[1], recursive)) {
+    if (!fs_core.deletePath(fs_core.makeAbsolutePath(tokens[1]), recursive)) {
         showError("删除失败: " + fs_core.getLastError());
         return;
     }
@@ -208,7 +216,7 @@ void CMDManager::handleMove(const std::vector<std::string>& tokens) {
         return;
     }
 
-    if (!fs_core.movePath(tokens[1], tokens[2])) {
+    if (!fs_core.movePath(fs_core.makeAbsolutePath(tokens[1]), fs_core.makeAbsolutePath(tokens[2]))) {
         showError("移动失败: " + fs_core.getLastError());
         return;
     }
@@ -222,7 +230,7 @@ void CMDManager::handleRename(const std::vector<std::string>& tokens) {
         return;
     }
 
-    if (!fs_core.renamePath(tokens[1], tokens[2])) {
+    if (!fs_core.renamePath(fs_core.makeAbsolutePath(tokens[1]), fs_core.makeAbsolutePath(tokens[2]))) {
         showError("重命名失败: " + fs_core.getLastError());
         return;
     }
@@ -244,7 +252,7 @@ void CMDManager::handleCd(const std::vector<std::string>& tokens) {
         return; // 保持当前目录
     }
 
-    if (!fs_core.ChangePath(target)) {
+    if (!fs_core.ChangePath(fs_core.makeAbsolutePath(target))) {
         showError("切换目录失败: " + fs_core.getLastError());
         return;
     }
@@ -260,7 +268,7 @@ void CMDManager::handleCls(const std::vector<std::string>&) {
 }
 
 void CMDManager::handlePwd(const std::vector<std::string>&) {
-    appendOutput("当前目录: " +FileSystemUtils::WideToUTF8(fs_core.getCurrentPath().wstring()) +
+    appendOutput("当前目录: " + FileSystemUtils::WideToUTF8(fs_core.getCurrentPath().wstring()) +
         "\n");
 }
 
@@ -270,7 +278,7 @@ void CMDManager::handleExists(const std::vector<std::string>& tokens) {
         return;
     }
 
-    if (fs_core.pathExists(tokens[1])) {
+    if (fs_core.pathExists(fs_core.makeAbsolutePath(tokens[1]))) {
         appendOutput("路径存在: " + tokens[1] + "\n");
     }
     else {
@@ -280,6 +288,7 @@ void CMDManager::handleExists(const std::vector<std::string>& tokens) {
 
 // 处理 mark 命令：快捷标记管理
 void CMDManager::handleMark(const std::vector<std::string>& tokens) {
+	int n = tokens.size();
     if (tokens.size() < 2) {
         showError("用法: mark <标记> <路径> | mark del <标记> | mark list");
         return;
@@ -288,6 +297,10 @@ void CMDManager::handleMark(const std::vector<std::string>& tokens) {
     std::string subcmd = tokens[1];
 
     if (subcmd == "list") {
+        if (tokens.size() >= 3) {
+            showError("经支持: mark list 暂不支持多余符号");
+            return;
+        }
         // 显示所有快捷标记
         if (shortcuts.empty()) {
             appendOutput("暂无快捷标记。使用 'mark <标记> <路径>' 添加快捷标记\n");
@@ -303,12 +316,12 @@ void CMDManager::handleMark(const std::vector<std::string>& tokens) {
 
         appendOutput("================================\n");
         appendOutput("共 " + std::to_string(shortcuts.size()) + " 个快捷标记\n");
-        appendOutput(
-            "提示: 可以使用 ${标记} 或 ${标记}/子路径 在命令中引用快捷路径\n");
+        appendOutput("提示: 可以使用 ${标记} 或 ${标记}/子路径 在命令中引用快捷路径\n");
+
     }
-    else if (subcmd == "del") {
+    if (subcmd == "del") {
         // 删除快捷标记
-        if (tokens.size() < 3) {
+        if (tokens.size() != 3) {
             showError("用法: mark del <标记>");
             return;
         }
@@ -334,18 +347,19 @@ void CMDManager::handleMark(const std::vector<std::string>& tokens) {
         }
 
         std::string mark = tokens[1];
-        std::string path = tokens[2];
+        fs::path path =fs_core.makeAbsolutePath(tokens[2]);
+        std::string path_str = FileSystemUtils::WideToUTF8(path.wstring());
 
         // 检查路径是否存在
         if (!fs_core.pathExists(path)) {
-            showError("路径不存在: " + path);
+            showError("路径不存在: " +path_str);
             return;
         }
 
         // 添加快捷标记
-        shortcuts[mark] = path;
+        shortcuts[mark] = path_str;
         saveShortcuts();
-        appendOutput("快捷标记已设置: " + mark + " -> " + path + "\n");
+        appendOutput("快捷标记已设置: " + mark + " -> " + path_str + "\n");
         appendOutput("提示: 现在可以使用 'cd ${" + mark + "}' 或 'cd ${" + mark +
             "}/子目录' 跳转目录\n");
     }

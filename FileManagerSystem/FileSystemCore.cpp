@@ -350,10 +350,10 @@ fs::path FileSystemCore::makeAbsolutePath(const std::string& relative_or_abs) co
 fs::path FileSystemCore::getCurrentPath() const { return current_path; }
 
 // 设置当前路径（跳转目录）
-bool FileSystemCore::ChangePath(const std::string& new_path) {
+bool FileSystemCore::ChangePath(const fs::path& new_path) {
     try {
         // 支持相对路径和绝对路径
-        fs::path abs_path = makeAbsolutePath(new_path);
+        fs::path abs_path =new_path;
 
         if (!fs::exists(abs_path)) {
             setLastError("路径不存在: " +
@@ -404,10 +404,10 @@ bool FileSystemCore::setCurrentPath(const fs::path& new_path) {
 }
 
 // 创建目录
-bool FileSystemCore::createDirectory(const std::string& dir_name,
+bool FileSystemCore::createDirectory(const fs::path& dir_name,
     bool recursive) {
     try {
-        fs::path full_path = makeAbsolutePath(dir_name);
+        fs::path full_path = dir_name;
 
         // 1. 检查路径是否已存在
         if (fs::exists(full_path)) {
@@ -452,9 +452,9 @@ bool FileSystemCore::createDirectory(const std::string& dir_name,
 }
 
 // 创建空文件
-bool FileSystemCore::createFile(const std::string& file_name) {
+bool FileSystemCore::createFile(const fs::path& file_name) {
     try {
-        fs::path full_path = makeAbsolutePath(file_name);
+        fs::path full_path = file_name;
 
         if (fs::exists(full_path)) {
             setLastError("文件已存在: " +
@@ -497,10 +497,10 @@ bool FileSystemCore::createFile(const std::string& file_name) {
 }
 
 // 删除路径（对外统一接口）：包含安全检查（关键路径检查、权限检查）
-bool FileSystemCore::deletePath(const std::string& path, bool recursive) {
+bool FileSystemCore::deletePath(const fs::path& path, bool recursive) {
     try {
         // 1. 转换为绝对路径
-        fs::path abs_target = makeAbsolutePath(path);
+        fs::path abs_target =path;
 
         // 2. 检查路径是否存在
         if (!fs::exists(abs_target)) {
@@ -596,12 +596,11 @@ bool FileSystemCore::deleteSingle(const fs::path& target) {
 }
 
 // 移动/复制文件或目录
-bool FileSystemCore::movePath(const std::string& source,
-    const std::string& destination) {
+bool FileSystemCore::movePath(const fs::path& source, const fs::path& destination) {
     try {
         // 构建源路径和目标路径（支持相对与绝对）
-        fs::path abs_src = makeAbsolutePath(source);
-        fs::path abs_dst = makeAbsolutePath(destination);
+        fs::path abs_src = source;
+        fs::path abs_dst =destination;
 
         // 检查源路径是否存在
         if (!fs::exists(abs_src)) {
@@ -629,8 +628,7 @@ bool FileSystemCore::movePath(const std::string& source,
 
 
 // 重命名
-bool FileSystemCore::renamePath(const std::string& old_name,
-    const std::string& new_name) {
+bool FileSystemCore::renamePath(const fs::path& old_name, const fs::path& new_name) {
     return movePath(old_name, new_name); // 重命名本质是原地移动
 }
 
@@ -814,10 +812,10 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,
 }
 
 // 检查路径是否存在
-bool FileSystemCore::pathExists(const std::string& path) const {
+bool FileSystemCore::pathExists(const fs::path& path) const {
     try {
-        fs::path abs_path = makeAbsolutePath(path);
-        return fs::exists(abs_path);
+       
+        return fs::exists(path);
     }
     catch (const fs::filesystem_error& e) {
         return false;
