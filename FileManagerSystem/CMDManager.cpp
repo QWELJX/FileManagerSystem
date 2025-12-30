@@ -28,8 +28,7 @@ void CMDManager::initCommands() {
                    {"exists", [this](auto& t) { handleExists(t); }},
         // 快捷目录命令
         {"mark", [this](auto& t) { handleMark(t); }},
-        // 运行程序命令
-        {"run", [this](auto& t) { handleRun(t); }},
+
         // 打开文件命令
         {"open", [this](auto& t) { handleOpen(t); }} };
 }
@@ -120,7 +119,7 @@ void CMDManager::handleHelp(const std::vector<std::string> &) {
 }
 
 void CMDManager::handleDir(const std::vector<std::string>& tokens) {
-    int n = tokens.size();
+    size_t n = tokens.size();
     if (n == 1) {
         appendOutput(fs_core.listDirectory());
         return;
@@ -134,9 +133,9 @@ void CMDManager::handleDir(const std::vector<std::string>& tokens) {
             showError(tokens[1] + "符号未知");
         return;
     }
-    else {
-        showError("暂不支持此功能");
-    }
+   
+    showError("暂不支持此功能");
+    
 }
 
 void CMDManager::handleMkdir(const std::vector<std::string>& tokens) {
@@ -365,47 +364,6 @@ void CMDManager::handleMark(const std::vector<std::string>& tokens) {
     }
 }
 
-// 处理 run 命令：运行exe文件
-void CMDManager::handleRun(const std::vector<std::string>& tokens) {
-    if (tokens.size() < 2) {
-        showError("用法: run <exe文件路径>");
-        return;
-    }
-
-    std::string exePath = tokens[1];
-
-    // 检查文件是否存在
-    if (!fs_core.pathExists(exePath)) {
-        showError("exe文件不存在: " + exePath);
-        return;
-    }
-
-    // 检查是否为exe文件
-    std::string extension;
-    size_t dotPos = exePath.find_last_of('.');
-    if (dotPos != std::string::npos) {
-        extension = exePath.substr(dotPos + 1);
-        std::transform(extension.begin(), extension.end(), extension.begin(),
-            ::tolower);
-    }
-
-    if (extension != "exe") {
-        showError("只支持运行exe文件");
-        return;
-    }
-
-    // 简单地使用system命令运行exe
-    std::string command = "\"" + exePath + "\"";
-    int result = system(command.c_str());
-
-    if (result == 0 ||
-        result == -1) { // system返回-1表示无法执行，但程序可能已经启动
-        appendOutput("程序已启动: " + exePath + "\n");
-    }
-    else {
-        showError("启动程序失败: " + exePath);
-    }
-}
 
 // 处理 open 命令：打开txt文件
 void CMDManager::handleOpen(const std::vector<std::string>& tokens) {

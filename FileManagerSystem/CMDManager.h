@@ -23,6 +23,7 @@ private:
 
     // 命令映射表
     std::unordered_map<std::string,std::function<void(const std::vector<std::string>&)>>command_map;
+
     // 初始化命令映射
     void initCommands();
 
@@ -51,8 +52,6 @@ private:
     void handleExists(const std::vector<std::string>& tokens);
     // 快捷目录管理
     void handleMark(const std::vector<std::string>& tokens);
-    // 运行可执行文件
-    void handleRun(const std::vector<std::string>& tokens);
     // 打开文件（使用系统默认程序）
     void handleOpen(const std::vector<std::string>& tokens);
 

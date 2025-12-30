@@ -100,6 +100,8 @@ private:
     bool deleteRecursive(const fs::path& target); // 递归删除
 
     void setLastError(const std::string& msg) { last_error_ = msg; }
-    void listDirectoryImpl(const fs::path& dir, bool detailed, bool recursive, std::ostringstream& output) const;
+    void listDirectoryDetail(const fs::path& dir, std::ostringstream& output) const;
+	void listDirectoryRecursive(const fs::path& dir, std::ostringstream& output) const;
+	void listDirectoryImpl1(const fs::path& dir, std::ostringstream& output) const;
     
 };

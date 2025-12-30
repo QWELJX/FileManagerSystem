@@ -387,8 +387,7 @@ bool FileSystemCore::setCurrentPath(const fs::path& new_path) {
 }
 
 // 创建目录
-bool FileSystemCore::createDirectory(const fs::path& dir_name,
-    bool recursive) {
+bool FileSystemCore::createDirectory(const fs::path& dir_name,bool recursive) {
     try {
         fs::path full_path = dir_name;
 
@@ -618,16 +617,25 @@ bool FileSystemCore::renamePath(const fs::path& old_name, const fs::path& new_na
 // 对外列表接口：支持详细/递归
 std::string FileSystemCore::listDirectory(bool detailed, bool recursive) const {
     std::ostringstream output;
-    listDirectoryImpl(current_path, detailed, recursive, output);
+    if (detailed) {
+        listDirectoryDetail(current_path, output);
+    }
+    else if (recursive) {
+        listDirectoryRecursive(current_path, output);
+    }
+    else {
+        listDirectoryImpl1(current_path, output);
+    }
+    
     return output.str();
 }
 
 // 目录列表实现：对指定目录进行列表显示，支持详细模式和递归
-void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,bool recursive,std::ostringstream& output) const {
+void FileSystemCore::listDirectoryDetail(const fs::path& dir, std::ostringstream& output) const {
     try {
         output << "目录: " << FileSystemUtils::WideToUTF8(dir.wstring()) << "\n\n";
 
-        if (detailed) {
+        
             // 收集条目并排序
             std::vector<fs::directory_entry> entries;
             for (const auto& entry : fs::directory_iterator(dir)) {
@@ -673,7 +681,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,bool r
                         type_name = "文件夹";
                     }
                     else {
-                        std::string ext = entry.path().extension().string();
+                        std::string ext = FileSystemUtils::WideToUTF8(entry.path().extension().wstring());
                         if (!ext.empty() && ext.front() == '.') {
                             ext.erase(ext.begin());
                         }
@@ -682,8 +690,7 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,bool r
                         }
                         if (!ext.empty()) {
                             auto it = EXT_TYPE_MAP.find(ext);
-                            type_name =
-                                (it != EXT_TYPE_MAP.end()) ? it->second : (ext + " 文件");
+                            type_name =(it != EXT_TYPE_MAP.end()) ? it->second : (ext + " 文件");
                         }
                         else {
                             type_name = "文件";
@@ -724,71 +731,160 @@ void FileSystemCore::listDirectoryImpl(const fs::path& dir, bool detailed,bool r
 
                 }
                 catch (const fs::filesystem_error&) {
-                    output << " [无法访问] "
-                        << FileSystemUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
+                    output << " [无法访问] "<< FileSystemUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
                 }
             }
-            int file_count = std::count_if(
-                entries.begin(), entries.end(),
-                [](const fs::directory_entry& e) { return e.is_regular_file(); });
+            int file_count = std::count_if(entries.begin(), entries.end(),[](const fs::directory_entry& e) { return e.is_regular_file(); });
             int dir_count = static_cast<int>(entries.size()) - file_count;
             output << "\n          " << file_count << " 个文件, " << dir_count
                 << " 个目录\n\n";
-        }
-        else if (recursive) {
-            try {
-                // 递归显示，使用层级缩进
-                for (fs::recursive_directory_iterator it(dir), end; it != end; ++it) {
-                    try {
-                        // 获取深度
-                        int depth = it.depth();
-
-                        // 根据深度生成前缀，每级增加4个字符的缩进
-                        std::string prefix;
-                        if (depth == 0) {
-                            // 根目录：----
-                            prefix = "----";
-                        }
-                        else {
-                            // 子项：depth*4个空格 + |---
-                            prefix = std::string(depth * 3, ' ') + "|---";
-                        }
-
-                        // 获取文件名
-                        std::string name = FileSystemUtils::WideToUTF8(it->path().filename().wstring());
-
-                        // 如果是目录，添加/
-                        if (it->is_directory()) {
-                            output << prefix << "[+]" << name << "\n";
-                        }
-                        else {
-                            output << prefix << "[-]" << name << "\n";
-                        }
-                    }
-                    catch (const fs::filesystem_error&) {
-                        int depth = 0;
-                        try {
-                            depth = it.depth();
-                        }
-                        catch (...) {
-                            depth = 0;
-                        }
-                        std::string prefix = (depth == 0) ? "----" : std::string(depth * 4, ' ') + "|---";
-                        output << prefix << "[无法访问条目]\n";
-                    }
-                }
-            }
-            catch (const fs::filesystem_error& e) {
-                output << "无法开始递归遍历: " << e.what() << "\n";
-                return;
-            }
-        }
-
     }
     catch (const fs::filesystem_error& e) {
         output << "无法访问目录: " << e.what() << "\n";
     }
 }
+void FileSystemCore::listDirectoryRecursive(const fs::path& dir, std::ostringstream& output) const {
+	try {
+		output << "目录: " << FileSystemUtils::WideToUTF8(dir.wstring()) << "\n\n";
+		try {
+			// 递归显示，使用层级缩进
+			for (fs::recursive_directory_iterator it(dir), end; it != end; ++it) {
+				try {
+					// 获取深度
+					int depth = it.depth();
+
+					// 根据深度生成前缀，每级增加4个字符的缩进
+					std::string prefix;
+					if (depth == 0) {
+						// 根目录：----
+						prefix = "I";
+					}
+					else {
+						// 子项：depth*4个空格 + |---
+						prefix = std::string(depth * 3, ' ') + "";
+					}
+
+					// 获取文件名
+					std::string name = FileSystemUtils::WideToUTF8(it->path().filename().wstring());
+
+					// 如果是目录，添加/
+					if (it->is_directory()) {
+						output << prefix << "[+]" << name << "\n";
+					}
+					else {
+						output << prefix << "[-]" << name << "\n";
+					}
+				}
+				catch (const fs::filesystem_error&) {
+					int depth = 0;
+					try {
+						depth = it.depth();
+					}
+					catch (...) {
+						depth = 0;
+					}
+					std::string prefix = (depth == 0) ? "----" : std::string(depth * 4, ' ') + "|---";
+					output << prefix << "[无法访问条目]\n";
+				}
+			}
+		}
+		catch (const fs::filesystem_error& e) {
+			output << "无法开始递归遍历: " << e.what() << "\n";
+			return;
+		}
+	}
+	catch (const fs::filesystem_error& e) {
+		output << "无法访问目录: " << e.what() << "\n";
+	}
+}
+void FileSystemCore::listDirectoryImpl1(const fs::path& dir, std::ostringstream& output) const {
+    try {
+        output << "目录: " << FileSystemUtils::WideToUTF8(dir.wstring()) << "\n\n";
+
+
+        // 收集条目并排序
+        std::vector<fs::directory_entry> entries;
+        for (const auto& entry : fs::directory_iterator(dir)) {
+            entries.push_back(entry);
+        }
+
+        std::sort(entries.begin(), entries.end(),
+            [](const fs::directory_entry& a, const fs::directory_entry& b) {
+                bool a_is_dir = a.is_directory();
+                bool b_is_dir = b.is_directory();
+                if (a_is_dir != b_is_dir)
+                    return a_is_dir > b_is_dir;
+                return a.path().filename().string() <
+                    b.path().filename().string();
+            });
+        const int NAME_WIDTH = 60; // 文件名列宽度
+        const int TYPE_WIDTH = 40; // 类型列宽度
+        const int COL_SPACING = 4; // 列间间距（显示宽度）
+
+        std::string header_name = FileSystemUtils::padToDisplayWidth("Name", NAME_WIDTH);
+        std::string header_type = FileSystemUtils::padToDisplayWidth("类型", TYPE_WIDTH);
+        output << header_name << std::string(COL_SPACING, ' ') << header_type << '\n';
+
+
+        // 2. 输出表头分隔线（可选，视觉辅助）
+        int total_width = NAME_WIDTH  + TYPE_WIDTH  + (3 * COL_SPACING);
+        output << std::string(total_width, '-') << "\n";
+        // 格式化输出
+        for (const auto& entry : entries) {
+            try {
+                auto status = entry.status();
+                bool is_dir = fs::is_directory(status);
+                bool is_file = fs::is_regular_file(status);
+                // 获取文件名
+                const std::string name = FileSystemUtils::WideToUTF8(entry.path().filename().wstring());
+                // 计算类型名称
+                std::string type_name;
+                if (is_dir) {
+                    type_name = "文件夹";
+                }
+                else {
+                    std::string ext = FileSystemUtils::WideToUTF8(entry.path().extension().wstring());
+                    if (!ext.empty() && ext.front() == '.') {
+                        ext.erase(ext.begin());
+                    }
+                    for (char& ch : ext) {
+                        ch = static_cast<char>(::tolower(static_cast<unsigned char>(ch)));
+                    }
+                    if (!ext.empty()) {
+                        auto it = EXT_TYPE_MAP.find(ext);
+                        type_name = (it != EXT_TYPE_MAP.end()) ? it->second : (ext + " 文件");
+                    }
+                    else {
+                        type_name = "文件";
+                    }
+                }
+
+                // ===== 关键修改：使用统一的宽度格式化 =====
+                // 文件名列：左对齐
+                std::string display_name = FileSystemUtils::padToDisplayWidth(name, NAME_WIDTH, true);
+
+                // 类型列：左对齐
+                std::string display_type = FileSystemUtils::padToDisplayWidth(type_name, TYPE_WIDTH, true);
+
+                // 输出格式化后的行，手动控制列间距
+                output << display_name << std::string(COL_SPACING, ' ')
+                    << display_type << std::string(COL_SPACING, ' ')<<"\n";
+
+            }
+            catch (const fs::filesystem_error&) {
+                output << " [无法访问] " << FileSystemUtils::WideToUTF8(entry.path().filename().wstring()) << "\n";
+            }
+        }
+        int file_count = std::count_if(entries.begin(), entries.end(), [](const fs::directory_entry& e) { return e.is_regular_file(); });
+        int dir_count = static_cast<int>(entries.size()) - file_count;
+        output << "\n          " << file_count << " 个文件, " << dir_count
+            << " 个目录\n\n";
+    }
+    catch (const fs::filesystem_error& e) {
+        output << "无法访问目录: " << e.what() << "\n";
+    }
+}
+
 
 // 检查路径是否存在
 bool FileSystemCore::pathExists(const fs::path& path) const {
