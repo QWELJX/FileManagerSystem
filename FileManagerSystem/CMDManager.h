@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "FileSystemCore.h"
 #include <algorithm>
 #include <functional>

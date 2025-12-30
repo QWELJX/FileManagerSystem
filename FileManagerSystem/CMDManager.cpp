@@ -1,4 +1,4 @@
-﻿#include "CMDManager.h"
+#include "CMDManager.h"
 #include <fstream>
 #include <limits>
 // 构造函数：初始化命令映射
